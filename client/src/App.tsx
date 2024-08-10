@@ -1,6 +1,6 @@
 import { Heading } from '@radix-ui/themes';
+import { Outlet } from 'react-router-dom';
 // import { useTheme } from 'next-themes';
-import { LoginPage } from './pages/LoginPage';
 
 function App() {
     return (
@@ -8,7 +8,7 @@ function App() {
             <Heading color="indigo" size="9" align="center">
                 Welcome to Zingy
             </Heading>
-            <LoginPage />
+            <Outlet />
         </>
     );
 }
