@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
 import path from 'path';
 import * as dotenv from 'dotenv';
-dotenv.config({ path: path.join('../.env') });
+dotenv.config({ path: path.join('./.env') });
 import express, { Application, Request, Response } from 'express';
 import cors from 'cors';
 import bodyParser from 'body-parser';
