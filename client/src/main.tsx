@@ -3,29 +3,9 @@ import { createRoot } from 'react-dom/client';
 import '@radix-ui/themes/styles.css';
 import { Theme } from '@radix-ui/themes';
 import { ThemeProvider } from 'next-themes';
-import { createBrowserRouter, RouterProvider } from 'react-router-dom';
-import ErrorPage from './pages/ErrorPage.tsx';
-import { LoginPage } from './pages/LoginPage.tsx';
-import { RegisterUser } from './pages/RegisterUser.tsx';
-import App from './App.tsx';
-
-const router = createBrowserRouter([
-    {
-        path: '/',
-        element: <App />,
-        errorElement: <ErrorPage />,
-        children: [
-            {
-                path: '/',
-                element: <LoginPage />,
-            },
-        ],
-    },
-    {
-        path: '/register',
-        element: <RegisterUser />,
-    },
-]);
+import { RouterProvider } from 'react-router-dom';
+import { AuthProvider } from './AuthContext.tsx';
+import { router } from './router.tsx';
 
 createRoot(document.getElementById('root')!).render(
     <StrictMode>
@@ -36,7 +16,9 @@ createRoot(document.getElementById('root')!).render(
                 radius="large"
                 scaling="95%"
             >
-                <RouterProvider router={router} />
+                <AuthProvider setAuthUser={() => null}>
+                    <RouterProvider router={router} />
+                </AuthProvider>
                 {/* <ThemePanel /> */}
             </Theme>
         </ThemeProvider>

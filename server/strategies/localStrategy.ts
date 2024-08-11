@@ -18,6 +18,7 @@ export const localStrategy = new Strategy(
                     email,
                 },
                 rejectOnEmpty: true,
+                raw: true,
             });
 
             const isValidPassword = await comparePassword(

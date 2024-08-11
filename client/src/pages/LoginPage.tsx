@@ -14,11 +14,15 @@ import * as Form from '@radix-ui/react-form';
 import { InfoCircledIcon } from '@radix-ui/react-icons';
 import { post } from '../helpers/axios-client';
 import { useNavigate } from 'react-router-dom';
-import { useState } from 'react';
+import { useContext, useState } from 'react';
+import { AuthContext } from '../AuthContext';
 
 export const LoginPage = () => {
     const navigate = useNavigate();
-    const [status, setStatus] = useState<number | undefined>();
+    const [status, setStatus] = useState<boolean>(false);
+    const { setAuthUser } = useContext(AuthContext);
+    if (!setAuthUser) return;
+
     return (
         <Container size="1" mt="9">
             <Card variant="classic" size="5" style={{ position: 'relative' }}>
@@ -41,11 +45,17 @@ export const LoginPage = () => {
                             new FormData(e.currentTarget)
                         );
                         const response = await post('auth/login', postData);
-                        setStatus(response.status);
+                        setStatus(response.data.success);
                         localStorage.setItem(
                             'jwt_secret',
                             response.data.secret
                         );
+                        localStorage.setItem(
+                            'auth_user',
+                            JSON.stringify(response.data.authUser)
+                        );
+                        setAuthUser(response.data.authUser);
+                        navigate('/dashboard');
                     }}
                 >
                     <Form.Field name="email">
@@ -157,7 +167,7 @@ export const LoginPage = () => {
                         </RadixLink>
                     </Text>
                 </Form.Root>
-                {status === 200 && (
+                {status && (
                     <Callout.Root color="green">
                         <Callout.Icon>
                             <InfoCircledIcon />
