@@ -43,10 +43,6 @@
     width: 30px;
     height: 25px;
     font-size: small;
-    white-space: nowrap;
-    overflow: hidden;
-    /* text-overflow: ellipsis; */
-    text-align: center;
     display: flex;
     justify-content: center;
     align-items: center;

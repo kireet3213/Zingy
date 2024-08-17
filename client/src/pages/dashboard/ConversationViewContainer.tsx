@@ -11,20 +11,19 @@ export function ConversationViewContainer() {
     const { conversation_id } = useParams<{ conversation_id: string }>();
     const [selectedConversation, setSelectedConverstaion] = useState<
         ConversationMessage | undefined
-    >(
-        conversationMessages.find(
-            (conversation) =>
-                conversation.conversationId === parseInt(conversation_id || '')
-        )
-    );
+    >();
 
     const [currentMessage, setCurrentMessage] = useState('');
     const sendMessageFieldRef = useRef<HTMLInputElement>(null);
     const messageBoxRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
+        const selectedConversation = conversationMessages.find(
+            (conversation) =>
+                conversation.conversationId === parseInt(conversation_id || '')
+        );
         setSelectedConverstaion(selectedConversation);
-    }, [selectedConversation]);
+    }, [conversation_id, selectedConversation]);
 
     useEffect(() => {
         if (messageBoxRef.current) {
