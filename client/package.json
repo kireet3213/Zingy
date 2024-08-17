@@ -8,7 +8,8 @@
         "build": "tsc -b && vite build",
         "lint": "eslint .",
         "preview": "vite preview",
-        "check-types": "tsc -p tsconfig.json"
+        "check-types": "tsc -p tsconfig.json",
+        "prettier": "prettier --write ."
     },
     "dependencies": {
         "@radix-ui/react-form": "^0.1.0",

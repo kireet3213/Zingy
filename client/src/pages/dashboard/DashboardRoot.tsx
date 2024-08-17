@@ -1,10 +1,10 @@
-import { Grid, Text } from '@radix-ui/themes';
+import { Grid } from '@radix-ui/themes';
 import { useContext, useEffect } from 'react';
 import { AuthContext } from '../../AuthContext';
 import { useNavigationHook } from '../../helpers/utility-hooks';
 import { NavBar } from './NavBar';
-import { ConversationListing } from './ConversationListing';
-import { ConversationDetails } from './ConversationDetails';
+import { ConversationContainer } from './ConversationContainer';
+import { Outlet } from 'react-router-dom';
 
 export function DashboardRoot() {
     const { authUser } = useContext(AuthContext);
@@ -17,10 +17,9 @@ export function DashboardRoot() {
     return (
         <>
             <NavBar authUser={authUser} />
-            <Text size="8">Welcome {authUser?.name}</Text>
-            <Grid columns="2" gap="0" width="auto">
-                <ConversationListing />
-                <ConversationDetails />
+            <Grid columns="30% 70%" gap="1">
+                <ConversationContainer />
+                <Outlet />
             </Grid>
         </>
     );

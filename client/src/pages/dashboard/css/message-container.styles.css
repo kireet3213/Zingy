@@ -1,0 +1,15 @@
+.message-box {
+    background-color: var(--accent-9);
+    max-width: 50%;
+    color: #fff;
+    border-radius: 10px;
+    hyphens: auto;
+    padding: 7px;
+    width: fit-content;
+}
+.current-user-message {
+    align-self: flex-end;
+    background-color: #fff;
+    color: black;
+    font-weight: 500;
+}

@@ -1,8 +1,4 @@
-import React, {
-    createContext,
-    PropsWithChildren,
-    useState,
-} from 'react';
+import React, { createContext, PropsWithChildren, useState } from 'react';
 import { AuthUser } from './types/user';
 import { Maybe } from './types/utility';
 

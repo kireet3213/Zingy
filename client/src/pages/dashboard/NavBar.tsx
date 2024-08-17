@@ -8,7 +8,7 @@ export const NavBar = ({ authUser }: { authUser: Maybe<AuthUser> }) => {
     const { setAuthUser } = useContext(AuthContext);
     return (
         <>
-            <TabNav.Root justify="end" size="2" mb="5">
+            <TabNav.Root justify="end" size="2">
                 <TabNav.Link>
                     <DropdownMenu.Root>
                         <DropdownMenu.Trigger>
@@ -26,6 +26,12 @@ export const NavBar = ({ authUser }: { authUser: Maybe<AuthUser> }) => {
                             </Button>
                         </DropdownMenu.Trigger>
                         <DropdownMenu.Content>
+                            <DropdownMenu.Item onClick={() => null}>
+                                Edit Profile
+                            </DropdownMenu.Item>
+                            <DropdownMenu.Item onClick={() => null}>
+                                Change Password
+                            </DropdownMenu.Item>
                             <DropdownMenu.Item
                                 onClick={() => {
                                     localStorage.clear();

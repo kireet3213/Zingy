@@ -1,0 +1,67 @@
+.conversation-box {
+    display: flex;
+    align-content: center;
+    padding: var(--space-2);
+    border-bottom: 1px solid var(--gray-5);
+    overflow: hidden;
+    &:hover {
+        background-color: var(--gray-4);
+        cursor: pointer;
+    }
+}
+
+.avatar-image {
+    border-radius: 50%;
+    width: 50%;
+    margin-left: -20px;
+    &:hover {
+        cursor: pointer;
+    }
+}
+
+.conversation-info {
+    display: flex;
+    flex-direction: column;
+    width: 80%;
+    margin-right: var(--space-2);
+    max-width: 550px;
+    gap: 10px;
+}
+.conversation-user {
+    display: flex;
+    justify-content: space-between;
+    align-content: center;
+    width: 100%;
+}
+
+.unseen-message {
+    margin-top: -5px;
+    border-radius: 50%;
+    background-color: var(--accent-indicator);
+    max-width: 25px;
+    max-height: 30px;
+    width: 30px;
+    height: 25px;
+    font-size: small;
+    white-space: nowrap;
+    overflow: hidden;
+    /* text-overflow: ellipsis; */
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.message-info {
+    display: flex;
+    justify-content: space-between;
+    align-content: center;
+
+    .last-message {
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        overflow: hidden;
+        font-weight: 400;
+        font-size: var(--space-3);
+    }
+}
