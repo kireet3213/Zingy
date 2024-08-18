@@ -1,5 +1,8 @@
 import { Conversation } from '../types/conversation';
 
+export const mockImageUrl =
+    'https://png.pngtree.com/png-vector/20190710/ourmid/pngtree-user-vector-avatar-png-image_1541962.jpg';
+
 export const Conversations: Conversation[] = [
     {
         id: 1,
@@ -8,8 +11,7 @@ export const Conversations: Conversation[] = [
         lastMessage: 'Desert is not for the weak.',
         unseenMessageCount: 4,
         latestMessageTimestamp: new Date('2023-08-01T12:45:00'),
-        profileImageUrl:
-            'https://png.pngtree.com/png-vector/20190710/ourmid/pngtree-user-vector-avatar-png-image_1541962.jpg',
+        profileImageUrl: mockImageUrl,
     },
     {
         id: 2,
@@ -18,8 +20,7 @@ export const Conversations: Conversation[] = [
         lastMessage: 'I’ll be there to protect you.',
         unseenMessageCount: 1,
         latestMessageTimestamp: new Date('2023-08-01T13:15:00'),
-        profileImageUrl:
-            'https://png.pngtree.com/png-vector/20190710/ourmid/pngtree-user-vector-avatar-png-image_1541962.jpg',
+        profileImageUrl: mockImageUrl,
     },
     {
         id: 3,
@@ -28,8 +29,7 @@ export const Conversations: Conversation[] = [
         lastMessage: 'Mood is for cattle and loveplay, not fighting.',
         unseenMessageCount: 3,
         latestMessageTimestamp: new Date('2023-08-01T14:00:00'),
-        profileImageUrl:
-            'https://png.pngtree.com/png-vector/20190710/ourmid/pngtree-user-vector-avatar-png-image_1541962.jpg',
+        profileImageUrl: mockImageUrl,
     },
     {
         id: 4,
@@ -38,8 +38,7 @@ export const Conversations: Conversation[] = [
         lastMessage: 'Trust your instincts, Paul.',
         unseenMessageCount: 2,
         latestMessageTimestamp: new Date('2023-08-01T14:30:00'),
-        profileImageUrl:
-            'https://png.pngtree.com/png-vector/20190710/ourmid/pngtree-user-vector-avatar-png-image_1541962.jpg',
+        profileImageUrl: mockImageUrl,
     },
     {
         id: 5,
@@ -48,8 +47,7 @@ export const Conversations: Conversation[] = [
         lastMessage: 'The desert has been our home for many generations.',
         unseenMessageCount: 6,
         latestMessageTimestamp: new Date('2023-08-01T15:00:00'),
-        profileImageUrl:
-            'https://png.pngtree.com/png-vector/20190710/ourmid/pngtree-user-vector-avatar-png-image_1541962.jpg',
+        profileImageUrl: mockImageUrl,
     },
     {
         id: 6,
@@ -58,8 +56,7 @@ export const Conversations: Conversation[] = [
         lastMessage: 'We are one with the desert.',
         unseenMessageCount: 1,
         latestMessageTimestamp: new Date('2023-08-01T16:00:00'),
-        profileImageUrl:
-            'https://png.pngtree.com/png-vector/20190710/ourmid/pngtree-user-vector-avatar-png-image_1541962.jpg',
+        profileImageUrl: mockImageUrl,
     },
     {
         id: 7,
@@ -68,8 +65,7 @@ export const Conversations: Conversation[] = [
         lastMessage: 'Soon, Arrakis will be mine.',
         unseenMessageCount: 8,
         latestMessageTimestamp: new Date('2023-08-01T17:00:00'),
-        profileImageUrl:
-            'https://png.pngtree.com/png-vector/20190710/ourmid/pngtree-user-vector-avatar-png-image_1541962.jpg',
+        profileImageUrl: mockImageUrl,
     },
     {
         id: 8,
@@ -78,8 +74,7 @@ export const Conversations: Conversation[] = [
         lastMessage: 'I have new intelligence to report.',
         unseenMessageCount: 1,
         latestMessageTimestamp: new Date('2023-08-01T17:30:00'),
-        profileImageUrl:
-            'https://png.pngtree.com/png-vector/20190710/ourmid/pngtree-user-vector-avatar-png-image_1541962.jpg',
+        profileImageUrl: mockImageUrl,
     },
     {
         id: 9,
@@ -88,8 +83,7 @@ export const Conversations: Conversation[] = [
         lastMessage: 'The desert holds many secrets.',
         unseenMessageCount: 4,
         latestMessageTimestamp: new Date('2023-08-01T18:00:00'),
-        profileImageUrl:
-            'https://png.pngtree.com/png-vector/20190710/ourmid/pngtree-user-vector-avatar-png-image_1541962.jpg',
+        profileImageUrl: mockImageUrl,
     },
     {
         id: 10,
@@ -98,8 +92,7 @@ export const Conversations: Conversation[] = [
         lastMessage: 'The spice must flow.',
         unseenMessageCount: 10,
         latestMessageTimestamp: new Date('2023-08-01T18:30:00'),
-        profileImageUrl:
-            'https://png.pngtree.com/png-vector/20190710/ourmid/pngtree-user-vector-avatar-png-image_1541962.jpg',
+        profileImageUrl: mockImageUrl,
     },
     {
         id: 11,
@@ -109,8 +102,7 @@ export const Conversations: Conversation[] = [
             'Gotham needs me now more than ever. I can’t let the city fall into chaos.',
         unseenMessageCount: 3,
         latestMessageTimestamp: new Date('2023-08-01T19:00:00'),
-        profileImageUrl:
-            'https://png.pngtree.com/png-vector/20190710/ourmid/pngtree-user-vector-avatar-png-image_1541962.jpg',
+        profileImageUrl: mockImageUrl,
     },
     {
         id: 12,
@@ -120,8 +112,7 @@ export const Conversations: Conversation[] = [
             'I’ve been hearing rumors about something big going down in Metropolis. I’m going to investigate.',
         unseenMessageCount: 1,
         latestMessageTimestamp: new Date('2023-08-01T19:15:00'),
-        profileImageUrl:
-            'https://png.pngtree.com/png-vector/20190710/ourmid/pngtree-user-vector-avatar-png-image_1541962.jpg',
+        profileImageUrl: mockImageUrl,
     },
     {
         id: 13,
@@ -131,8 +122,7 @@ export const Conversations: Conversation[] = [
             'The world is more complicated than it used to be. We must be vigilant in our quest for justice.',
         unseenMessageCount: 2,
         latestMessageTimestamp: new Date('2023-08-01T19:30:00'),
-        profileImageUrl:
-            'https://png.pngtree.com/png-vector/20190710/ourmid/pngtree-user-vector-avatar-png-image_1541962.jpg',
+        profileImageUrl: mockImageUrl,
     },
     {
         id: 14,
@@ -142,8 +132,7 @@ export const Conversations: Conversation[] = [
             'The speed force has been acting up lately. I need to get to the bottom of this quickly.',
         unseenMessageCount: 1,
         latestMessageTimestamp: new Date('2023-08-01T19:45:00'),
-        profileImageUrl:
-            'https://png.pngtree.com/png-vector/20190710/ourmid/pngtree-user-vector-avatar-png-image_1541962.jpg',
+        profileImageUrl: mockImageUrl,
     },
 
     {
@@ -154,8 +143,7 @@ export const Conversations: Conversation[] = [
             'Just finished another prototype. This one should be even more powerful than the last.',
         unseenMessageCount: 7,
         latestMessageTimestamp: new Date('2023-08-01T20:00:00'),
-        profileImageUrl:
-            'https://png.pngtree.com/png-vector/20190710/ourmid/pngtree-user-vector-avatar-png-image_1541962.jpg',
+        profileImageUrl: mockImageUrl,
     },
     {
         id: 16,
@@ -165,8 +153,7 @@ export const Conversations: Conversation[] = [
             'The world may have changed, but the mission remains the same. We fight for freedom.',
         unseenMessageCount: 4,
         latestMessageTimestamp: new Date('2023-08-01T20:15:00'),
-        profileImageUrl:
-            'https://png.pngtree.com/png-vector/20190710/ourmid/pngtree-user-vector-avatar-png-image_1541962.jpg',
+        profileImageUrl: mockImageUrl,
     },
     {
         id: 17,
@@ -176,8 +163,7 @@ export const Conversations: Conversation[] = [
             'I’ve got a lead on the next target. This could be the break we’ve been waiting for.',
         unseenMessageCount: 2,
         latestMessageTimestamp: new Date('2023-08-01T20:30:00'),
-        profileImageUrl:
-            'https://png.pngtree.com/png-vector/20190710/ourmid/pngtree-user-vector-avatar-png-image_1541962.jpg',
+        profileImageUrl: mockImageUrl,
     },
     {
         id: 18,
@@ -187,8 +173,7 @@ export const Conversations: Conversation[] = [
             'School’s been tough, but I think I’m finally getting the hang of this whole Spider-Man thing.',
         unseenMessageCount: 5,
         latestMessageTimestamp: new Date('2023-08-01T20:45:00'),
-        profileImageUrl:
-            'https://png.pngtree.com/png-vector/20190710/ourmid/pngtree-user-vector-avatar-png-image_1541962.jpg',
+        profileImageUrl: mockImageUrl,
     },
     {
         id: 19,
@@ -198,8 +183,7 @@ export const Conversations: Conversation[] = [
             'Asgard may be gone, but we must forge a new path forward for our people.',
         unseenMessageCount: 3,
         latestMessageTimestamp: new Date('2023-08-01T21:00:00'),
-        profileImageUrl:
-            'https://png.pngtree.com/png-vector/20190710/ourmid/pngtree-user-vector-avatar-png-image_1541962.jpg',
+        profileImageUrl: mockImageUrl,
     },
     {
         id: 20,
@@ -209,8 +193,7 @@ export const Conversations: Conversation[] = [
             'Chaos is a ladder, and I intend to climb it to the very top.',
         unseenMessageCount: 1,
         latestMessageTimestamp: new Date('2023-08-01T21:15:00'),
-        profileImageUrl:
-            'https://png.pngtree.com/png-vector/20190710/ourmid/pngtree-user-vector-avatar-png-image_1541962.jpg',
+        profileImageUrl: mockImageUrl,
     },
     {
         id: 21,
@@ -220,8 +203,7 @@ export const Conversations: Conversation[] = [
             'Reality is what you make of it. I’m going to ensure it bends to my will.',
         unseenMessageCount: 6,
         latestMessageTimestamp: new Date('2023-08-01T21:30:00'),
-        profileImageUrl:
-            'https://png.pngtree.com/png-vector/20190710/ourmid/pngtree-user-vector-avatar-png-image_1541962.jpg',
+        profileImageUrl: mockImageUrl,
     },
     {
         id: 22,
@@ -231,8 +213,7 @@ export const Conversations: Conversation[] = [
             'There are forces at work that even I do not fully understand. We must be cautious.',
         unseenMessageCount: 2,
         latestMessageTimestamp: new Date('2023-08-01T21:45:00'),
-        profileImageUrl:
-            'https://png.pngtree.com/png-vector/20190710/ourmid/pngtree-user-vector-avatar-png-image_1541962.jpg',
+        profileImageUrl: mockImageUrl,
     },
     {
         id: 23,
@@ -242,8 +223,7 @@ export const Conversations: Conversation[] = [
             'Wakanda must remain hidden, but the world is in need of our guidance now more than ever.',
         unseenMessageCount: 4,
         latestMessageTimestamp: new Date('2023-08-01T22:00:00'),
-        profileImageUrl:
-            'https://png.pngtree.com/png-vector/20190710/ourmid/pngtree-user-vector-avatar-png-image_1541962.jpg',
+        profileImageUrl: mockImageUrl,
     },
     {
         id: 24,
@@ -253,8 +233,7 @@ export const Conversations: Conversation[] = [
             'I’ve been tinkering with the suit again. I think I’ve figured out how to make it even smaller!',
         unseenMessageCount: 3,
         latestMessageTimestamp: new Date('2023-08-01T22:15:00'),
-        profileImageUrl:
-            'https://png.pngtree.com/png-vector/20190710/ourmid/pngtree-user-vector-avatar-png-image_1541962.jpg',
+        profileImageUrl: mockImageUrl,
     },
     {
         id: 25,
@@ -264,8 +243,7 @@ export const Conversations: Conversation[] = [
             'I’ve been patrolling the galaxy. There’s something out there, something big.',
         unseenMessageCount: 1,
         latestMessageTimestamp: new Date('2023-08-01T22:30:00'),
-        profileImageUrl:
-            'https://png.pngtree.com/png-vector/20190710/ourmid/pngtree-user-vector-avatar-png-image_1541962.jpg',
+        profileImageUrl: mockImageUrl,
     },
     {
         id: 26,
@@ -275,8 +253,7 @@ export const Conversations: Conversation[] = [
             'The other guy has been getting stronger. I’m not sure how much longer I can keep him contained.',
         unseenMessageCount: 5,
         latestMessageTimestamp: new Date('2023-08-01T22:45:00'),
-        profileImageUrl:
-            'https://png.pngtree.com/png-vector/20190710/ourmid/pngtree-user-vector-avatar-png-image_1541962.jpg',
+        profileImageUrl: mockImageUrl,
     },
     {
         id: 27,
@@ -285,8 +262,7 @@ export const Conversations: Conversation[] = [
         lastMessage: 'We’ve got a situation. I’m calling in the Avengers.',
         unseenMessageCount: 8,
         latestMessageTimestamp: new Date('2023-08-01T23:00:00'),
-        profileImageUrl:
-            'https://png.pngtree.com/png-vector/20190710/ourmid/pngtree-user-vector-avatar-png-image_1541962.jpg',
+        profileImageUrl: mockImageUrl,
     },
     {
         id: 28,
@@ -295,8 +271,7 @@ export const Conversations: Conversation[] = [
         lastMessage: 'I’m suiting up. War Machine is ready for action.',
         unseenMessageCount: 2,
         latestMessageTimestamp: new Date('2023-08-01T23:15:00'),
-        profileImageUrl:
-            'https://png.pngtree.com/png-vector/20190710/ourmid/pngtree-user-vector-avatar-png-image_1541962.jpg',
+        profileImageUrl: mockImageUrl,
     },
     {
         id: 29,
@@ -306,8 +281,7 @@ export const Conversations: Conversation[] = [
             'I’m ready to take up the shield. The world needs Captain America.',
         unseenMessageCount: 4,
         latestMessageTimestamp: new Date('2023-08-01T23:30:00'),
-        profileImageUrl:
-            'https://png.pngtree.com/png-vector/20190710/ourmid/pngtree-user-vector-avatar-png-image_1541962.jpg',
+        profileImageUrl: mockImageUrl,
     },
     {
         id: 30,
@@ -317,8 +291,7 @@ export const Conversations: Conversation[] = [
             'The past still haunts me, but I’m doing my best to move forward.',
         unseenMessageCount: 1,
         latestMessageTimestamp: new Date('2023-08-01T23:45:00'),
-        profileImageUrl:
-            'https://png.pngtree.com/png-vector/20190710/ourmid/pngtree-user-vector-avatar-png-image_1541962.jpg',
+        profileImageUrl: mockImageUrl,
     },
     {
         id: 31,
@@ -328,8 +301,7 @@ export const Conversations: Conversation[] = [
             'I’ve been contemplating the nature of humanity. There’s so much more to learn.',
         unseenMessageCount: 3,
         latestMessageTimestamp: new Date('2023-08-02T00:00:00'),
-        profileImageUrl:
-            'https://png.pngtree.com/png-vector/20190710/ourmid/pngtree-user-vector-avatar-png-image_1541962.jpg',
+        profileImageUrl: mockImageUrl,
     },
     {
         id: 32,
@@ -338,8 +310,7 @@ export const Conversations: Conversation[] = [
         lastMessage: 'My aim’s as sharp as ever. Just give me a target.',
         unseenMessageCount: 1,
         latestMessageTimestamp: new Date('2023-08-02T00:15:00'),
-        profileImageUrl:
-            'https://png.pngtree.com/png-vector/20190710/ourmid/pngtree-user-vector-avatar-png-image_1541962.jpg',
+        profileImageUrl: mockImageUrl,
     },
     {
         id: 33,
@@ -349,8 +320,7 @@ export const Conversations: Conversation[] = [
             'The universe is vast and dangerous. We have to be prepared for anything.',
         unseenMessageCount: 2,
         latestMessageTimestamp: new Date('2023-08-02T00:30:00'),
-        profileImageUrl:
-            'https://png.pngtree.com/png-vector/20190710/ourmid/pngtree-user-vector-avatar-png-image_1541962.jpg',
+        profileImageUrl: mockImageUrl,
     },
     {
         id: 34,
@@ -360,8 +330,7 @@ export const Conversations: Conversation[] = [
             'I’ve been tracking Thanos. His plans are more sinister than we thought.',
         unseenMessageCount: 4,
         latestMessageTimestamp: new Date('2023-08-02T00:45:00'),
-        profileImageUrl:
-            'https://png.pngtree.com/png-vector/20190710/ourmid/pngtree-user-vector-avatar-png-image_1541962.jpg',
+        profileImageUrl: mockImageUrl,
     },
     {
         id: 35,
@@ -371,7 +340,6 @@ export const Conversations: Conversation[] = [
             'I’ve got a new weapon in the works. This one’s going to pack a punch!',
         unseenMessageCount: 1,
         latestMessageTimestamp: new Date('2023-08-02T00:45:00'),
-        profileImageUrl:
-            'https://png.pngtree.com/png-vector/20190710/ourmid/pngtree-user-vector-avatar-png-image_1541962.jpg',
+        profileImageUrl: mockImageUrl,
     },
 ];

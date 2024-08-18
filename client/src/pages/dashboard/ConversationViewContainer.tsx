@@ -9,7 +9,7 @@ const sendMessageTone = new Audio('/happy-pop.mp3');
 
 export function ConversationViewContainer() {
     const { conversation_id } = useParams<{ conversation_id: string }>();
-    const [selectedConversation, setSelectedConverstaion] = useState<
+    const [selectedConversation, setSelectedConversation] = useState<
         ConversationMessage | undefined
     >();
 
@@ -22,7 +22,7 @@ export function ConversationViewContainer() {
             (conversation) =>
                 conversation.conversationId === parseInt(conversation_id || '')
         );
-        setSelectedConverstaion(selectedConversation);
+        setSelectedConversation(selectedConversation);
     }, [conversation_id, selectedConversation]);
 
     useEffect(() => {
@@ -33,29 +33,25 @@ export function ConversationViewContainer() {
     }, [selectedConversation?.messages]);
 
     async function submitMessage() {
-        if (sendMessageFieldRef.current && messageBoxRef.current) {
+        if (sendMessageFieldRef.current) {
             if (!sendMessageFieldRef.current.value?.trim()) return;
             await sendMessageTone.play();
-            setSelectedConverstaion((prev) => {
+            setSelectedConversation((prev) => {
                 if (!prev) return prev;
+                const newMessage = {
+                    id: prev?.messages.length + 1,
+                    createdAt: new Date(),
+                    updatedAt: new Date(),
+                    senderId: 1,
+                    text: currentMessage,
+                };
+                conversationMessages[0].messages.push(newMessage);
                 return {
                     ...prev,
-                    messages: [
-                        ...prev.messages,
-                        {
-                            id: prev?.messages.length + 1,
-                            createdAt: new Date(),
-                            updatedAt: new Date(),
-                            senderId: 1,
-                            text: currentMessage,
-                        },
-                    ],
+                    messages: [...prev.messages, newMessage],
                 };
             });
             sendMessageFieldRef.current.value = '';
-            messageBoxRef.current.scrollIntoView({
-                behavior: 'smooth',
-            });
         }
     }
     return (
@@ -67,8 +63,8 @@ export function ConversationViewContainer() {
                 flexDirection: 'column',
                 backgroundColor: 'var(--gray-5)',
                 height: '100%',
-                minHeight: '96vh',
-                maxHeight: '96vh',
+                minHeight: '99vh',
+                maxHeight: '99vh',
             }}
         >
             <MessageBox

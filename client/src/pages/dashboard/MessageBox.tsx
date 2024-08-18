@@ -23,6 +23,7 @@ export const MessageBox = forwardRef<HTMLDivElement, MessageBoxProps>(
                     flex: 1,
                     scrollbarWidth: 'thin',
                     scrollbarColor: 'var(--gray-8) #fff',
+                    justifyContent: 'end',
                 }}
             >
                 {conversation?.messages.map((message) => (

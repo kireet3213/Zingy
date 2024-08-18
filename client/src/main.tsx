@@ -6,6 +6,7 @@ import { ThemeProvider } from 'next-themes';
 import { RouterProvider } from 'react-router-dom';
 import { AuthProvider } from './AuthContext.tsx';
 import { router } from './router.tsx';
+import './main.css';
 
 createRoot(document.getElementById('root')!).render(
     <StrictMode>

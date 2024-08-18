@@ -42,7 +42,7 @@
     max-height: 30px;
     width: 30px;
     height: 25px;
-    font-size: small;
+    font-size: var(--space-3);
     display: flex;
     justify-content: center;
     align-items: center;

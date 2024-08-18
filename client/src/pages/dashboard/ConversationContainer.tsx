@@ -13,8 +13,8 @@ export function ConversationContainer() {
                 scrollbarWidth: 'thin',
                 scrollBehavior: 'smooth',
                 height: '100%',
-                minHeight: '97vh',
-                maxHeight: '97vh',
+                minHeight: '99vh',
+                maxHeight: '99vh',
             }}
         >
             {Conversations.map((conversation) => (
