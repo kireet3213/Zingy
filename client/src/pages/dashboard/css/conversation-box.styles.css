@@ -1,4 +1,7 @@
 .conversation-box {
+    text-decoration: none;
+    color: inherit;
+    font: inherit;
     display: flex;
     align-content: center;
     padding: var(--space-2);
@@ -8,6 +11,9 @@
         background-color: var(--gray-4);
         cursor: pointer;
     }
+}
+.active {
+    background-color: var(--gray-4);
 }
 
 .avatar-image {

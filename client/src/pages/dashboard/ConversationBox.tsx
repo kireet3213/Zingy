@@ -1,6 +1,6 @@
 import { Conversation } from './types/conversation';
 import './css/conversation-box.styles.css';
-import { useNavigate } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 
 type ConversationBoxProps = {
     conversation: Conversation;
@@ -10,7 +10,7 @@ export const ConversationBox = ({ conversation }: ConversationBoxProps) => {
         conversation;
     const navigate = useNavigate();
     return (
-        <div className="conversation-box">
+        <NavLink to={`/dashboard/${id}`} className="conversation-box">
             <div style={{ width: '20%', textAlign: 'center' }}>
                 <img
                     src={
@@ -20,6 +20,7 @@ export const ConversationBox = ({ conversation }: ConversationBoxProps) => {
                     alt="No Image"
                     height="50px"
                     className="avatar-image"
+                    onClick={(e) => e.preventDefault()}
                 />
             </div>
             <div
@@ -56,6 +57,6 @@ export const ConversationBox = ({ conversation }: ConversationBoxProps) => {
                     </span>
                 </div>
             </div>
-        </div>
+        </NavLink>
     );
 };

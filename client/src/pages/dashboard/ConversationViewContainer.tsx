@@ -80,12 +80,19 @@ export function ConversationViewContainer() {
                     setCurrentMessage(e.currentTarget.value);
                 }}
                 onKeyDown={(e) => {
+                    if (e.key === 'Enter' && e.shiftKey) return;
                     if (e.key === 'Enter') {
                         submitMessage();
                     }
                 }}
                 variant="classic"
-                style={{ minHeight: '40px', maxWidth: '99.7%' }}
+                style={{
+                    minHeight: '40px',
+                    maxWidth: '99%',
+                    textWrap: 'wrap',
+                    alignSelf: 'center',
+                    minWidth: '99%',
+                }}
             >
                 <TextField.Slot side="right">
                     <PaperPlaneIcon cursor="pointer" onClick={submitMessage} />
