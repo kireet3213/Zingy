@@ -1,7 +1,6 @@
 .message-box {
-    background-color: var(--accent-9);
+    background-color: var(--accent-10);
     max-width: 50%;
-    color: #fff;
     border-radius: 10px;
     hyphens: auto;
     padding: 7px;
@@ -9,7 +8,7 @@
 }
 .current-user-message {
     align-self: flex-end;
-    background-color: #fff;
+    background-color: var(--gray-10);
     color: black;
     font-weight: 500;
 }
