@@ -29,7 +29,7 @@ export const RegisterUser = () => {
                         setStatus(response.status);
                     }}
                 >
-                    <Form.Field name="name">
+                    <Form.Field name="username">
                         <Form.ValidityState>
                             {(validity) => {
                                 return (

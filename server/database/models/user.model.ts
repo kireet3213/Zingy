@@ -18,16 +18,17 @@ export class User extends Model {
     @PrimaryKey
     @AutoIncrement
     @Column({
-        type: DataType.BIGINT,
+        type: DataType.UUIDV4,
         allowNull: false,
+        defaultValue: DataType.UUIDV4,
     })
-    id: number;
+    id: string;
 
     @Column({
         type: DataType.STRING,
         allowNull: false,
     })
-    name: string;
+    username: string;
 
     @Unique
     @Column({

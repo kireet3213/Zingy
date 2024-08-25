@@ -16,7 +16,7 @@ export function globalErrorHandler(
         const errorObj = err.map((e) => {
             return e.constraints;
         });
-        res.status(401).send(errorObj);
+        res.status(422).send(errorObj);
     } else if (err instanceof AuthorizationError) {
         res.status(401).json(err);
     } else if (err instanceof ValidationError) {
