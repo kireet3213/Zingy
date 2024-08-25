@@ -1,6 +1,6 @@
 export type Message = {
-    id: number;
-    senderId: number;
+    id: string;
+    senderId: string;
     text: string;
     createdAt: Date;
     updatedAt: Date;

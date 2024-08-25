@@ -162,6 +162,7 @@ export const RegisterUser = () => {
                         <Callout.Text>
                             Registration Successful.{' '}
                             <RadixLink
+                                style={{ cursor: 'pointer' }}
                                 onClick={() => navigate({ pathname: '/' })}
                             >
                                 Login Now

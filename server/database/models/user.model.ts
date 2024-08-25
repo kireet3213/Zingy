@@ -7,6 +7,7 @@ import {
     AutoIncrement,
     Unique,
     BeforeCreate,
+    BeforeBulkCreate,
 } from 'sequelize-typescript';
 import { getHashedPassword } from '../../helper/bcrypt-helpers';
 
@@ -24,6 +25,7 @@ export class User extends Model {
     })
     id: string;
 
+    @Unique
     @Column({
         type: DataType.STRING,
         allowNull: false,
@@ -48,5 +50,13 @@ export class User extends Model {
     static async beforeCreateHook(user: User) {
         const hashed = await getHashedPassword(user.password);
         user.password = hashed;
+    }
+
+    @BeforeBulkCreate
+    static async beforeBulkCreateHook(users: User[]) {
+        for (const user of users) {
+            const hashed = await getHashedPassword(user.password);
+            user.password = hashed;
+        }
     }
 }

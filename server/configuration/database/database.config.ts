@@ -1,6 +1,9 @@
 import { Sequelize } from 'sequelize-typescript';
 import { User } from '../../database/models/user.model';
 import { Dialect } from 'sequelize';
+import path from 'path';
+import * as dotenv from 'dotenv';
+dotenv.config({ path: path.join('./.env') });
 
 const connection = new Sequelize({
     dialect: (process.env.DB_DIALECT || 'mysql') as Dialect,

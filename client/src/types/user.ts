@@ -1,7 +1,7 @@
 export type AuthUser = {
     createdAt: string;
     email: string;
-    id: number;
+    id: string;
     name: string;
     updatedAt: string;
 };

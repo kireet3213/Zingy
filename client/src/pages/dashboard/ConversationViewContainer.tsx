@@ -5,6 +5,7 @@ import { conversationMessages } from './mockData/conversation-messages';
 import { MessageBox } from './MessageBox';
 import { useEffect, useRef, useState } from 'react';
 import { ConversationMessage } from './types/messages';
+import { socket } from '../../socket';
 const sendMessageTone = new Audio('/happy-pop.mp3');
 
 export function ConversationViewContainer() {
@@ -36,14 +37,17 @@ export function ConversationViewContainer() {
         if (sendMessageFieldRef.current) {
             if (!sendMessageFieldRef.current.value?.trim()) return;
             await sendMessageTone.play();
+            const messageDetails = {
+                createdAt: new Date(),
+                updatedAt: new Date(),
+                senderId: 'e5156d09-e552-47a6-99b0-858327a6379f',
+                text: currentMessage,
+            };
             setSelectedConversation((prev) => {
                 if (!prev) return prev;
                 const newMessage = {
-                    id: prev?.messages.length + 1,
-                    createdAt: new Date(),
-                    updatedAt: new Date(),
-                    senderId: 1,
-                    text: currentMessage,
+                    id: (prev?.messages.length + 1).toString(),
+                    ...messageDetails,
                 };
                 conversationMessages[0].messages.push(newMessage);
                 return {
@@ -51,6 +55,7 @@ export function ConversationViewContainer() {
                     messages: [...prev.messages, newMessage],
                 };
             });
+            socket.emit('message', messageDetails);
             sendMessageFieldRef.current.value = '';
         }
     }

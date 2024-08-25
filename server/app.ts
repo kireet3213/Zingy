@@ -13,6 +13,7 @@ import session from 'express-session';
 import authRoutes from './routes/auth/auth';
 import { localStrategy } from './strategies/localStrategy';
 import { verifyToken } from './middleware/verification.middleware';
+import { Server } from 'socket.io';
 
 const app: Application = express();
 
@@ -54,6 +55,26 @@ connection
     .catch((err) => {
         console.log('Error', err);
     });
-app.listen(PORT, () => {
+
+//server
+const server = app.listen(PORT, () => {
     console.log(`Server is listening on port ${PORT}`);
+});
+
+//socket io server
+const io = new Server(server, {
+    cors: {
+        origin: process.env.CLIENT_URL || 'http://localhost:5173',
+    },
+});
+
+io.on('connection', (socket) => {
+    console.log('Socket connected: ', socket.id);
+    socket.on('disconnect', () => {
+        console.log('Socket disconnected: ', socket.id);
+    });
+
+    socket.on('message', (message) => {
+        console.log(message);
+    });
 });
