@@ -3,6 +3,9 @@ import { User } from '../../database/models/user.model';
 import { Dialect } from 'sequelize';
 import path from 'path';
 import * as dotenv from 'dotenv';
+import { Conversation } from '../../database/models/conversation.model';
+import { ConversationUser } from '../../database/models/conversationUser.model';
+import { Message } from '../../database/models/message.model';
 dotenv.config({ path: path.join('./.env') });
 
 const connection = new Sequelize({
@@ -17,7 +20,7 @@ const connection = new Sequelize({
               console.log('\x1b[35m%s\x1b[0m', query)
             : undefined;
     },
-    models: [User],
+    models: [User, Conversation, ConversationUser, Message],
     port: (process.env.DB_PORT || 3306) as number,
 });
 
