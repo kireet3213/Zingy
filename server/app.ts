@@ -14,6 +14,7 @@ import authRoutes from './routes/auth/auth';
 import { localStrategy } from './strategies/localStrategy';
 import { verifyToken } from './middleware/verification.middleware';
 import { Server } from 'socket.io';
+import { socketMiddleware } from './middleware/socket.middleware';
 
 const app: Application = express();
 
@@ -68,8 +69,11 @@ const io = new Server(server, {
     },
 });
 
+io.use(socketMiddleware);
+
 io.on('connection', (socket) => {
     console.log('Socket connected: ', socket.id);
+    console.log('Socket ', socket.handshake.auth);
     socket.on('disconnect', () => {
         console.log('Socket disconnected: ', socket.id);
     });

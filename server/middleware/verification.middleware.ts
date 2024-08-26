@@ -13,7 +13,7 @@ export function verifyToken(
     next();
 }
 
-function validateBearerToken(authHeader: string | undefined) {
+export async function validateBearerToken(authHeader: string | undefined) {
     if (!authHeader || !authHeader.includes('Bearer ')) {
         throw new AuthorizationError('Invalid Bearer Token');
     }
@@ -21,13 +21,19 @@ function validateBearerToken(authHeader: string | undefined) {
     const token = authHeader.split(' ')[1];
     try {
         const payload = jwt.verify(token, secret) as jwt.JwtPayload;
-        User.findOne({
+        await User.findOne({
             where: {
                 id: payload.userId,
             },
             rejectOnEmpty: true,
         });
     } catch (error) {
+        if (error instanceof jwt.TokenExpiredError) {
+            throw new AuthorizationError('Token Expired');
+        }
+        if (error instanceof jwt.JsonWebTokenError) {
+            throw new AuthorizationError('Invalid Token');
+        }
         throw new AuthorizationError(JSON.stringify(error));
     }
 }
