@@ -10,7 +10,10 @@ export function verifyToken(
     next: express.NextFunction
 ): void {
     validateBearerToken(req.header('Authorization'))
-        .then(() => next())
+        .then((user) => {
+            req.user = user;
+            next();
+        })
         .catch((error) => next(error));
 }
 
@@ -22,12 +25,13 @@ export async function validateBearerToken(authHeader: string | undefined) {
     const token = authHeader.split(' ')[1];
     try {
         const payload = jwt.verify(token, secret) as jwt.JwtPayload;
-        await User.findOne({
+        const user = await User.findOne({
             where: {
                 id: payload.userId,
             },
             rejectOnEmpty: true,
         });
+        return user;
     } catch (error) {
         if (error instanceof jwt.TokenExpiredError) {
             throw new AuthorizationError('Token Expired');

@@ -11,11 +11,19 @@ import {
     Scopes,
 } from 'sequelize-typescript';
 import { getHashedPassword } from '../../helper/bcrypt-helpers';
+import { Op } from 'sequelize';
 
-@Scopes(()=>({
+@Scopes(() => ({
     withoutPassword: {
         attributes: { exclude: ['password'] },
-    }
+    },
+    withoutCurrentUser: (user: User) => ({
+        where: {
+            id: {
+                [Op.ne]: user.id,
+            },
+        },
+    }),
 }))
 @Table({
     timestamps: true,

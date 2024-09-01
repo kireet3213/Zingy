@@ -1,18 +1,18 @@
 /* eslint-disable no-console */
 import { Grid } from '@radix-ui/themes';
-import { useContext, useEffect, useState } from 'react';
+import { useContext, useEffect } from 'react';
 import { AuthContext } from '../../AuthContext';
 import { ConversationContainer } from './ConversationContainer';
 import { Navigate, Outlet } from 'react-router-dom';
 import { SideBar } from './SideBar';
 import { socket } from '../../socket';
-import { Maybe } from '../../types/utility';
+// import { Maybe } from '../../types/utility';
 import { Socket } from 'socket.io-client';
 
 export function DashboardRoot() {
     const { authUser } = useContext(AuthContext);
-    const [isConnected, setIsConnected] = useState(socket.connected);
-    const [socketErrors, setSocketErrors] = useState<Maybe<Error>>();
+    // const [isConnected, setIsConnected] = useState(socket.connected);
+    // const [socketErrors, setSocketErrors] = useState<Maybe<Error>>();
 
     useEffect(() => {
         socket.connect();
@@ -22,17 +22,18 @@ export function DashboardRoot() {
                 console.log('Reconnected with server');
                 console.log(socket.id);
             }
-            setIsConnected(true);
+            // setIsConnected(true);
         }
 
         function onDisconnect(reason: Socket.DisconnectReason) {
             console.log('Disconnected', reason);
-            setIsConnected(false);
+            // setIsConnected(false);
         }
         socket.on('connect', onConnect);
         socket.on('disconnect', onDisconnect);
         socket.on('connect_error', (err) => {
-            setSocketErrors(err);
+            console.error(err);
+            // setSocketErrors(err);
         });
 
         // socket.on('ping', (data) =>

@@ -22,8 +22,7 @@ export const registerUser: RequestHandler = catchAsync(
 
 export const searchUsers: RequestHandler = catchAsync(
     async (req: express.Request, res: express.Response) => {
-        const keyword = req.query.keyword as string;
-
+        const keyword = req.query.keyword || '';
         const page =
             (typeof req.query.page === 'string' &&
                 !!req.query.page &&
@@ -34,8 +33,10 @@ export const searchUsers: RequestHandler = catchAsync(
                 !!req.query.perPage &&
                 Number.parseInt(req.query.perPage)) ||
             20;
-
-        const users = await User.scope('withoutPassword').findAll({
+        const users = await User.scope([
+            'withoutPassword',
+            { method: ['withoutCurrentUser', req.user] },
+        ]).findAll({
             limit: perPage,
             offset: perPage * (page - 1),
             where: {
