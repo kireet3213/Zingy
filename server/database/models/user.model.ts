@@ -8,9 +8,15 @@ import {
     Unique,
     BeforeCreate,
     BeforeBulkCreate,
+    Scopes,
 } from 'sequelize-typescript';
 import { getHashedPassword } from '../../helper/bcrypt-helpers';
 
+@Scopes(()=>({
+    withoutPassword: {
+        attributes: { exclude: ['password'] },
+    }
+}))
 @Table({
     timestamps: true,
     tableName: 'users',

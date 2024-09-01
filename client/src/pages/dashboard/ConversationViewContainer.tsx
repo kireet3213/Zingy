@@ -6,7 +6,24 @@ import { MessageBox } from './MessageBox';
 import { useEffect, useRef, useState } from 'react';
 import { ConversationMessage } from './types/messages';
 import { socket } from '../../socket';
+import { AcknowledgementCallback } from '../../types/socket';
 const sendMessageTone = new Audio('/happy-pop.mp3');
+
+const acknowledgementCallback: AcknowledgementCallback = (
+    error,
+    acknowlegementResponse
+) => {
+    if (error) {
+        // the other side did not acknowledge the event in the given delay
+        // eslint-disable-next-line no-console
+        console.error(
+            'Timeout Error. Not Acknowledged. Need to send data again',
+            error
+        );
+    }
+    // eslint-disable-next-line no-console
+    console.log('ackResponse', acknowlegementResponse);
+};
 
 export function ConversationViewContainer() {
     const { conversation_id } = useParams<{ conversation_id: string }>();
@@ -55,7 +72,9 @@ export function ConversationViewContainer() {
                     messages: [...prev.messages, newMessage],
                 };
             });
-            socket.emit('message', messageDetails);
+            socket
+                .timeout(5000)
+                .emit('message', messageDetails, acknowledgementCallback);
             sendMessageFieldRef.current.value = '';
         }
     }
@@ -68,8 +87,8 @@ export function ConversationViewContainer() {
                 flexDirection: 'column',
                 backgroundColor: 'var(--gray-5)',
                 height: '100%',
-                minHeight: '99vh',
-                maxHeight: '99vh',
+                minHeight: '95dvh',
+                maxHeight: '95dvh',
             }}
         >
             <MessageBox

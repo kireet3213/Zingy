@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
 import connection from '../../configuration/database/database.config';
-import { seedUsers } from './seed-users';
+import { seedUsers } from '../seeders/seed-users';
 
 connection
     .authenticate()

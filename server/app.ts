@@ -67,6 +67,10 @@ const io = new Server(server, {
     cors: {
         origin: process.env.CLIENT_URL || 'http://localhost:5173',
     },
+    connectionStateRecovery: {
+        maxDisconnectionDuration: 2 * 60 * 1000,
+        skipMiddlewares: true,
+    },
 });
 
 io.use(socketMiddleware);
@@ -74,11 +78,25 @@ io.use(socketMiddleware);
 io.on('connection', (socket) => {
     console.log('Socket connected: ', socket.id);
     console.log('Socket ', socket.handshake.auth);
-    socket.on('disconnect', () => {
-        console.log('Socket disconnected: ', socket.id);
+    socket.on('disconnect', (reason) => {
+        console.log('Socket disconnected: ', socket.id, 'due to', reason);
     });
-
-    socket.on('message', (message) => {
+    //connection state recovery
+    if (socket.recovered) {
+        console.log(
+            'Reconnected socket server',
+            socket.id,
+            socket.rooms.entries(),
+            socket.data
+        );
+    }
+    socket.on('message', (message, acknowlegementCallback) => {
         console.log(message);
+        acknowlegementCallback('acknowledged');
     });
 });
+
+setInterval(() => {
+    io.emit('ping', new Date().toLocaleString());
+    console.log('ping', new Date().toLocaleString());
+}, 1000);

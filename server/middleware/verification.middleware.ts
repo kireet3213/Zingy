@@ -9,8 +9,9 @@ export function verifyToken(
     _res: express.Response,
     next: express.NextFunction
 ): void {
-    validateBearerToken(req.header('Authorization'));
-    next();
+    validateBearerToken(req.header('Authorization'))
+        .then(() => next())
+        .catch((error) => next(error));
 }
 
 export async function validateBearerToken(authHeader: string | undefined) {
@@ -30,6 +31,9 @@ export async function validateBearerToken(authHeader: string | undefined) {
     } catch (error) {
         if (error instanceof jwt.TokenExpiredError) {
             throw new AuthorizationError('Token Expired');
+        }
+        if (error instanceof jwt.NotBeforeError) {
+            throw new AuthorizationError('Invalid Token');
         }
         if (error instanceof jwt.JsonWebTokenError) {
             throw new AuthorizationError('Invalid Token');
