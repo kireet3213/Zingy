@@ -4,7 +4,6 @@ import {
     Column,
     DataType,
     PrimaryKey,
-    AutoIncrement,
     Unique,
     BeforeCreate,
     BeforeBulkCreate,
@@ -31,7 +30,6 @@ import { Op } from 'sequelize';
 })
 export class User extends Model {
     @PrimaryKey
-    @AutoIncrement
     @Column({
         type: DataType.UUIDV4,
         allowNull: false,

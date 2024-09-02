@@ -5,6 +5,7 @@ import { validateOrRejectSchema } from '../../helper/validate-schema';
 import * as express from 'express';
 import { catchAsync } from '../../helper/async-promise-handler';
 import { Op } from 'sequelize';
+import { UserProfile } from '../../database/models/userProfile.model';
 
 export const registerUser: RequestHandler = catchAsync(
     async (req: express.Request, res: express.Response) => {
@@ -14,6 +15,7 @@ export const registerUser: RequestHandler = catchAsync(
         registerUser.username = req.body.username;
         await validateOrRejectSchema(registerUser);
         const user = await User.build().setAttributes(registerUser).save();
+        await UserProfile.build().setAttributes({ userId: user.id }).save();
         return res
             .status(200)
             .json({ message: 'User registered successfully', data: user });

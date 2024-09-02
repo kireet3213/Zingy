@@ -1,6 +1,5 @@
 import {
     AllowNull,
-    AutoIncrement,
     Column,
     DataType,
     ForeignKey,
@@ -17,7 +16,6 @@ import { User } from './user.model';
 })
 export class Message extends Model {
     @PrimaryKey
-    @AutoIncrement
     @Column({
         type: DataType.UUID,
         allowNull: false,
