@@ -28,7 +28,7 @@ export function ConversationContainer() {
                 overflow: 'auto',
                 scrollbarGutter: 'stable',
                 overflowX: 'hidden',
-                scrollbarColor: 'var(--gray-8) #fff',
+                scrollbarColor: 'var(--gray-8) var(--gray-11)',
                 scrollbarWidth: 'thin',
                 scrollBehavior: 'smooth',
                 height: '100%',

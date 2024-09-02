@@ -19,10 +19,7 @@ export const MessageBox = forwardRef<HTMLDivElement, MessageBoxProps>(
                     flexDirection: 'column',
                     gap: '20px',
                     padding: '10px',
-                    overflowY: 'auto',
                     flex: 1,
-                    scrollbarWidth: 'thin',
-                    scrollbarColor: 'var(--gray-8) #fff',
                     justifyContent: 'end',
                 }}
             >

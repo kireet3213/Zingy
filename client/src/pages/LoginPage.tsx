@@ -46,6 +46,7 @@ export const LoginPage = () => {
                             mb="3"
                         />
                         <Form.Root
+                            autoComplete="on"
                             onSubmit={async (e) => {
                                 e.preventDefault();
                                 const postData = Object.fromEntries(

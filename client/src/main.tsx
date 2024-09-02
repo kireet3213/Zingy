@@ -9,17 +9,17 @@ import './main.css';
 
 createRoot(document.getElementById('root')!).render(
     <StrictMode>
-            <Theme
-                accentColor="indigo"
-                grayColor="sand"
-                radius="large"
-                scaling="95%"
-                appearance='dark'
-            >
-                <AuthProvider setAuthUser={() => null}>
-                    <RouterProvider router={router} />
-                </AuthProvider>
-                {/* <ThemePanel /> */}
-            </Theme>
+        <Theme
+            accentColor="indigo"
+            grayColor="sand"
+            radius="large"
+            scaling="95%"
+            appearance="dark"
+        >
+            <AuthProvider setAuthUser={() => null}>
+                <RouterProvider router={router} />
+            </AuthProvider>
+            {/* <ThemePanel /> */}
+        </Theme>
     </StrictMode>
 );

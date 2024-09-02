@@ -53,6 +53,7 @@ export function ConversationViewContainer() {
     async function submitMessage() {
         if (sendMessageFieldRef.current) {
             if (!sendMessageFieldRef.current.value?.trim()) return;
+            sendMessageTone.currentTime = 0;
             await sendMessageTone.play();
             const messageDetails = {
                 createdAt: new Date(),
@@ -81,20 +82,29 @@ export function ConversationViewContainer() {
     return (
         <div
             style={{
-                display: 'flex',
-                alignContent: 'center',
-                justifyContent: 'space-between',
-                flexDirection: 'column',
                 backgroundColor: 'var(--gray-5)',
                 height: '100%',
                 minHeight: '95dvh',
                 maxHeight: '95dvh',
             }}
         >
-            <MessageBox
+            <div
                 ref={messageBoxRef}
-                conversation={selectedConversation}
-            />
+                style={{
+                    display: 'flex',
+                    alignContent: 'center',
+                    justifyContent: 'space-between',
+                    flexDirection: 'column',
+                    maxHeight: '89dvh',
+                    minHeight: '89dvh',
+                    overflow: 'auto',
+                    scrollbarColor: 'var(--gray-8) var(--gray-11)',
+                    scrollbarWidth: 'thin',
+                    scrollbarGutter: 'stable',
+                }}
+            >
+                <MessageBox conversation={selectedConversation} />
+            </div>
             <TextField.Root
                 ref={sendMessageFieldRef}
                 radius="full"
@@ -110,13 +120,6 @@ export function ConversationViewContainer() {
                     }
                 }}
                 variant="classic"
-                style={{
-                    minHeight: '40px',
-                    maxWidth: '99%',
-                    textWrap: 'wrap',
-                    alignSelf: 'center',
-                    minWidth: '99%',
-                }}
             >
                 <TextField.Slot side="right">
                     <PaperPlaneIcon cursor="pointer" onClick={submitMessage} />
