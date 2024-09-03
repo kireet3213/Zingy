@@ -11,14 +11,14 @@ export const ConversationBox = ({ conversation }: ConversationBoxProps) => {
     const navigate = useNavigate();
     return (
         <NavLink to={`/dashboard/${id}`} className="conversation-box">
-            <div style={{ width: '20%', textAlign: 'center' }}>
+            <div className='avatar-image-container'>
                 <img
                     src={
                         profileImageUrl ||
                         'https://png.pngtree.com/png-vector/20190710/ourmid/pngtree-user-vector-avatar-png-image_1541962.jpg'
                     }
                     alt="No Image"
-                    height="50px"
+                    height="100%"
                     className="avatar-image"
                     onClick={(e) => e.preventDefault()}
                 />
@@ -27,7 +27,7 @@ export const ConversationBox = ({ conversation }: ConversationBoxProps) => {
                 className="conversation-info"
                 onClick={() => navigate('/dashboard/' + id)}
             >
-                <div className="conversation-user">
+                <div className="conversation-username-and-last-message-container">
                     <span
                         style={{
                             fontWeight: 500,
@@ -36,6 +36,14 @@ export const ConversationBox = ({ conversation }: ConversationBoxProps) => {
                     >
                         {senderName || 'UserName'}
                     </span>
+                    <div className="last-message">
+                        {lastMessage ??
+                            `This is a last message received from server that might be
+                    very long. Lorem ipsum dolor sit, amet consectetur
+                    adipisicing elit. Sapiente, distinctio?`}
+                    </div>
+                </div>
+                <div className="last-message-timestamp-and-unseen-message-count">
                     <span
                         style={{
                             fontWeight: 300,
@@ -44,15 +52,7 @@ export const ConversationBox = ({ conversation }: ConversationBoxProps) => {
                     >
                         13:45
                     </span>
-                </div>
-                <div className="message-info">
-                    <div className="last-message">
-                        {lastMessage ??
-                            `This is a last message received from server that might be
-                    very long. Lorem ipsum dolor sit, amet consectetur
-                    adipisicing elit. Sapiente, distinctio?`}
-                    </div>
-                    <span className="unseen-message">
+                    <span className="unseen-message-count">
                         {unseenMessageCount ?? undefined}
                     </span>
                 </div>

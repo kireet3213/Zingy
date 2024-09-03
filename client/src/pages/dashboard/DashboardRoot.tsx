@@ -8,6 +8,7 @@ import { SideBar } from './SideBar';
 import { socket } from '../../socket';
 // import { Maybe } from '../../types/utility';
 import { Socket } from 'socket.io-client';
+import './css/dashboard.styles.css'
 
 export function DashboardRoot() {
     const { authUser } = useContext(AuthContext);
@@ -61,7 +62,7 @@ export function DashboardRoot() {
     }, []);
 
     return (
-        <div style={{ margin: '1% 5% 5% 5%' }}>
+        <div className='dashboard-root'>
             {/* <Text>{socketErrors?.message}</Text> */}
             {!authUser ? (
                 <Navigate to="/"></Navigate>

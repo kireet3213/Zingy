@@ -7,6 +7,9 @@ import { useEffect, useRef, useState } from 'react';
 import { ConversationMessage } from './types/messages';
 import { socket } from '../../socket';
 import { AcknowledgementCallback } from '../../types/socket';
+import './css/dashboard.styles.css'
+
+
 const sendMessageTone = new Audio('/happy-pop.mp3');
 
 const acknowledgementCallback: AcknowledgementCallback = (
@@ -81,27 +84,14 @@ export function ConversationViewContainer() {
     }
     return (
         <div
-            style={{
-                backgroundColor: 'var(--gray-5)',
-                height: '100%',
-                minHeight: '95dvh',
-                maxHeight: '95dvh',
-            }}
+            className='conversation-view-container'
         >
             <div
                 ref={messageBoxRef}
                 style={{
-                    display: 'flex',
-                    alignContent: 'center',
-                    justifyContent: 'space-between',
-                    flexDirection: 'column',
-                    maxHeight: '89dvh',
-                    minHeight: '89dvh',
-                    overflow: 'auto',
-                    scrollbarColor: 'var(--gray-8) var(--gray-11)',
-                    scrollbarWidth: 'thin',
-                    scrollbarGutter: 'stable',
+                   
                 }}
+                className='message-box-container'
             >
                 <MessageBox conversation={selectedConversation} />
             </div>

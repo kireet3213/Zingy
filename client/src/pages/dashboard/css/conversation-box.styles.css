@@ -4,6 +4,8 @@
     font: inherit;
     display: flex;
     align-content: center;
+    justify-content: center;
+    flex-direction: row;
     padding: var(--space-2);
     border-bottom: 1px solid var(--gray-5);
     overflow: hidden;
@@ -16,9 +18,15 @@
     background-color: var(--gray-4);
 }
 
+.avatar-image-container {
+    max-width: 20%;
+    align-self: center;
+    text-align: center;
+}
+
 .avatar-image {
     border-radius: 50%;
-    width: 50%;
+    max-width: 70%;
     margin-left: -20px;
     &:hover {
         cursor: pointer;
@@ -27,38 +35,35 @@
 
 .conversation-info {
     display: flex;
-    flex-direction: column;
     width: 80%;
-    margin-right: var(--space-2);
     max-width: 550px;
     gap: 10px;
-}
-.conversation-user {
-    display: flex;
     justify-content: space-between;
-    align-content: center;
-    width: 100%;
 }
 
-.unseen-message {
-    margin-top: -5px;
+.unseen-message-count {
     border-radius: 50%;
     background-color: var(--accent-indicator);
     max-width: 25px;
-    max-height: 30px;
-    width: 30px;
-    height: 25px;
+    min-width: 25px;
+    min-height: 25px;
     font-size: var(--space-3);
     display: flex;
     justify-content: center;
     align-items: center;
 }
 
-.message-info {
+.last-message-timestamp-and-unseen-message-count {
     display: flex;
+    flex-direction: column;
     justify-content: space-between;
-    align-content: center;
+}
 
+.conversation-username-and-last-message-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-width: 85%;
     .last-message {
         white-space: nowrap;
         text-overflow: ellipsis;

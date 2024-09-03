@@ -25,16 +25,9 @@ export function ConversationContainer() {
     return (
         <div
             style={{
-                overflow: 'auto',
-                scrollbarGutter: 'stable',
-                overflowX: 'hidden',
-                scrollbarColor: 'var(--gray-8) var(--gray-11)',
-                scrollbarWidth: 'thin',
-                scrollBehavior: 'smooth',
-                height: '100%',
-                minHeight: '95dvh',
-                maxHeight: '95dvh',
+                
             }}
+            className='conversation-container'
         >
             {Conversations.map((conversation) => (
                 <ConversationBox
