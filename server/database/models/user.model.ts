@@ -8,9 +8,11 @@ import {
     BeforeCreate,
     BeforeBulkCreate,
     Scopes,
+    HasOne,
 } from 'sequelize-typescript';
 import { getHashedPassword } from '../../helper/bcrypt-helpers';
 import { Op } from 'sequelize';
+import { UserProfile } from './userProfile.model';
 
 @Scopes(() => ({
     withoutPassword: {
@@ -23,6 +25,9 @@ import { Op } from 'sequelize';
             },
         },
     }),
+    withProfile: {
+        include: [UserProfile],
+    },
 }))
 @Table({
     timestamps: true,
@@ -57,6 +62,9 @@ export class User extends Model {
         allowNull: false,
     })
     password: string;
+
+    @HasOne(() => UserProfile)
+    userProfile: UserProfile;
 
     @BeforeCreate
     static async beforeCreateHook(user: User) {
