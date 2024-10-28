@@ -7,8 +7,7 @@ import { useEffect, useRef, useState } from 'react';
 import { ConversationMessage } from './types/messages';
 import { socket } from '../../socket';
 import { AcknowledgementCallback } from '../../types/socket';
-import './css/dashboard.styles.css'
-
+import './css/dashboard.styles.css';
 
 const sendMessageTone = new Audio('/happy-pop.mp3');
 
@@ -83,15 +82,11 @@ export function ConversationViewContainer() {
         }
     }
     return (
-        <div
-            className='conversation-view-container'
-        >
+        <div className="conversation-view-container">
             <div
                 ref={messageBoxRef}
-                style={{
-                   
-                }}
-                className='message-box-container'
+                style={{}}
+                className="message-box-container"
             >
                 <MessageBox conversation={selectedConversation} />
             </div>

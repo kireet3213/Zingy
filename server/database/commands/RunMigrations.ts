@@ -14,6 +14,7 @@ if (command === '--revert') {
     dropAllTables({});
 }
 
+
 async function runAllMigrations() {
     console.log(`\x1b[34m Running all pending migrations \x1b[0m`);
     const migrations = await umzug.up().catch((err) => console.log(err));

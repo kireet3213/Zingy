@@ -4,7 +4,7 @@
     "description": "",
     "main": "index.js",
     "scripts": {
-        "prettier": "prettier server/**/*.{js,ts,tsx} client/**/*.{js,ts,tsx} --write",
+        "prettier": "prettier server/**/*.{ts,json} client/**/*.{js,ts,tsx} --write",
         "lint": "pnpm -r run lint",
         "check-types": "pnpm -r run check-types"
     },

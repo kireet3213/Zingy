@@ -9,11 +9,8 @@ export const up: Migration = async function ({ context: queryInterface }) {
     });
 };
 
-export const down: Migration = async function ({ context: queryInterface }) {
-    await queryInterface.changeColumn('users', 'id', {
-        type: DataTypes.BIGINT,
-        autoIncrement: true,
-    });
+export const down: Migration = async function ({ }) {
+    //ignore
 };
 
 module.exports = { up, down };

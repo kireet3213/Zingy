@@ -17,7 +17,6 @@ import { Server } from 'socket.io';
 import { socketMiddleware } from './middleware/socket.middleware';
 
 const app: Application = express();
-
 app.use(cors());
 // parse requests of content-type - application/json
 

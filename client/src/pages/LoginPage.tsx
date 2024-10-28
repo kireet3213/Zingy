@@ -31,8 +31,7 @@ export const LoginPage = () => {
                     <Card
                         variant="classic"
                         size="5"
-                        style={{ position: 'relative' }}
-                    >
+                        style={{ position: 'relative' }}>
                         <Avatar
                             src="https://cdna.artstation.com/p/assets/images/images/073/539/612/large/michele-marchionni-kratos.jpg?1709889910"
                             size="8"
@@ -67,8 +66,7 @@ export const LoginPage = () => {
                                 );
                                 setAuthUser(response.data.authUser);
                                 navigate('/dashboard');
-                            }}
-                        >
+                            }}>
                             <Form.Field name="email">
                                 <Form.ValidityState>
                                     {(validity) => {
@@ -91,15 +89,13 @@ export const LoginPage = () => {
                                                                 : 'red'
                                                         }
                                                         required
-                                                        type="email"
-                                                    >
+                                                        type="email">
                                                         {validity?.valid ===
                                                         false ? (
                                                             <Tooltip content="Invalid Input">
                                                                 <TextField.Slot
                                                                     side="right"
-                                                                    color="red"
-                                                                >
+                                                                    color="red">
                                                                     <InfoCircledIcon />
                                                                 </TextField.Slot>
                                                             </Tooltip>
@@ -133,15 +129,13 @@ export const LoginPage = () => {
                                                                 : 'red'
                                                         }
                                                         required
-                                                        type="password"
-                                                    >
+                                                        type="password">
                                                         {validity?.valid ===
                                                         false ? (
                                                             <Tooltip content="Invalid Input">
                                                                 <TextField.Slot
                                                                     side="right"
-                                                                    color="red"
-                                                                >
+                                                                    color="red">
                                                                     <InfoCircledIcon />
                                                                 </TextField.Slot>
                                                             </Tooltip>
@@ -160,8 +154,7 @@ export const LoginPage = () => {
                                     variant="surface"
                                     type="submit"
                                     mb="3"
-                                    style={{ width: '100%' }}
-                                >
+                                    style={{ width: '100%' }}>
                                     Login
                                 </Button>
                             </Form.Submit>
@@ -172,16 +165,14 @@ export const LoginPage = () => {
                                     position: 'absolute',
                                     bottom: '10px',
                                     right: '50px',
-                                }}
-                            >
+                                }}>
                                 New User?{' '}
                                 <RadixLink
                                     underline="hover"
                                     style={{ cursor: 'pointer' }}
                                     onClick={() =>
                                         navigate({ pathname: '/register' })
-                                    }
-                                >
+                                    }>
                                     Register Now
                                 </RadixLink>
                             </Text>

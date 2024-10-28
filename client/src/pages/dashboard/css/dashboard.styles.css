@@ -22,20 +22,20 @@
     .dashboard-root {
         margin: 0;
     }
-    .radix-themes{
+    .radix-themes {
         margin: 0;
     }
-    .conversation-container{
+    .conversation-container {
         min-height: 100dvh !important;
         max-height: 100dvh !important;
     }
-    .conversation-view-container{
+    .conversation-view-container {
         min-height: 100dvh !important;
         max-height: 100dvh !important;
     }
 }
 
-.conversation-container{
+.conversation-container {
     overflow: auto;
     scrollbar-gutter: stable;
     overflow-x: hidden;
@@ -47,7 +47,7 @@
     max-height: 95dvh;
 }
 
-.message-box-container{
+.message-box-container {
     display: flex;
     align-content: center;
     justify-content: space-between;
@@ -60,7 +60,7 @@
     scrollbar-gutter: stable;
 }
 
-.conversation-view-container{
+.conversation-view-container {
     background-color: var(--gray-5);
     min-height: 95dvh;
     max-height: 95dvh;

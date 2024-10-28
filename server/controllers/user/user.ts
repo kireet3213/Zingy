@@ -36,6 +36,7 @@ export const searchUsers: RequestHandler = catchAsync(
                 Number.parseInt(req.query.perPage)) ||
             20;
         const users = await User.scope([
+            'defaultScope',
             'withoutPassword',
             { method: ['withoutCurrentUser', req.user] },
         ]).findAll({
@@ -47,6 +48,6 @@ export const searchUsers: RequestHandler = catchAsync(
                 },
             },
         });
-        return res.status(200).json({ succes: true, users });
+        return res.status(200).json({ success: true, users });
     }
 );

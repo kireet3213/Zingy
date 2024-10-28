@@ -15,7 +15,7 @@ createRoot(document.getElementById('root')!).render(
             radius="large"
             scaling="95%"
             appearance="dark"
-            className='main-root'
+            className="main-root"
         >
             <AuthProvider setAuthUser={() => null}>
                 <RouterProvider router={router} />

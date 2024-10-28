@@ -9,6 +9,7 @@ import {
     BeforeBulkCreate,
     Scopes,
     HasOne,
+    DefaultScope,
 } from 'sequelize-typescript';
 import { getHashedPassword } from '../../helper/bcrypt-helpers';
 import { Op } from 'sequelize';
@@ -24,11 +25,13 @@ import { UserProfile } from './userProfile.model';
                 [Op.ne]: user.id,
             },
         },
-    }),
-    withProfile: {
-        include: [UserProfile],
-    },
+    })
 }))
+@DefaultScope(()=>{
+   return {
+    include: [UserProfile],
+   }
+})
 @Table({
     timestamps: true,
     tableName: 'users',
@@ -63,7 +66,7 @@ export class User extends Model {
     })
     password: string;
 
-    @HasOne(() => UserProfile)
+    @HasOne(() => UserProfile, { as: "userProfile"})
     userProfile: UserProfile;
 
     @BeforeCreate

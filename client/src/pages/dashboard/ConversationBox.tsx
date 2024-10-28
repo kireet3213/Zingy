@@ -11,7 +11,7 @@ export const ConversationBox = ({ conversation }: ConversationBoxProps) => {
     const navigate = useNavigate();
     return (
         <NavLink to={`/dashboard/${id}`} className="conversation-box">
-            <div className='avatar-image-container'>
+            <div className="avatar-image-container">
                 <img
                     src={
                         profileImageUrl ||
