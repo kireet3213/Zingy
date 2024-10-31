@@ -1,0 +1,23 @@
+{
+  "version": 2,
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/dist/server"
+    }
+  ],
+  "builds": [
+    {
+      "src": "dist/server/aoo.js",
+      "use": "@vercel/node"
+    }
+  ],
+  "buildCommand": "pnpm install && pnpm build",
+  "outputDirectory": "dist/server",
+  "redirects": [
+    {
+      "source": "/(.*)",
+      "destination": "/dist/server"
+    }
+  ]
+}
