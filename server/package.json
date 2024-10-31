@@ -6,7 +6,7 @@
     "scripts": {
         "build": "tsc",
         "dev": "nodemon app.ts",
-        "start": "node ./dist/app.js",
+        "start": "node ./dist/server/app.js",
         "migration:create": "ts-node database/commands/CreateMigration.ts",
         "check-types": "tsc -p tsconfig.json",
         "test": "echo \"Error: no test specified\" && exit 1",
