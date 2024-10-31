@@ -1,8 +1,9 @@
 import { ChatBubbleIcon, GearIcon } from '@radix-ui/react-icons';
-import { Avatar, Box, Button, DropdownMenu, Tooltip } from '@radix-ui/themes';
+import { Box, Button, DropdownMenu, Tooltip } from '@radix-ui/themes';
 import { mockImageUrl } from './mockData/conversations-mock';
 import { useContext } from 'react';
 import { AuthContext } from '../../AuthContext';
+import { socket } from '../../socket';
 
 export const SideBar = () => {
     const { setAuthUser } = useContext(AuthContext);
@@ -41,22 +42,21 @@ export const SideBar = () => {
                 <DropdownMenu.Trigger>
                     <Button
                         style={{
-                            minWidth: '100%',
                             cursor: 'pointer',
                             marginBottom: '10px',
                             background: 0,
                         }}
                         variant="soft"
                     >
-                        <Avatar
-                            radius="full"
+                        <img
                             src={mockImageUrl}
-                            fallback="NA"
                             style={{
-                                width: '50%',
-                                marginBottom: '10px',
-                                cursor: 'pointer',
+                                width: '50px',
+                                height: '50px',
+                                borderRadius: '50%',
+                                objectFit: 'cover',
                             }}
+                            alt="N/A"
                         />
                     </Button>
                 </DropdownMenu.Trigger>
@@ -71,6 +71,7 @@ export const SideBar = () => {
                         onClick={() => {
                             localStorage.clear();
                             if (setAuthUser) setAuthUser(null);
+                            socket.close();
                         }}
                     >
                         Logout

@@ -1,5 +1,8 @@
 import { io, Socket } from 'socket.io-client';
-import { ClientToServerEvents, ServerToClientEvents } from './types/socket';
+import {
+    ClientToServerEvents,
+    ServerToClientEvents,
+} from '../../shared-types/socket';
 
 // "undefined" means the URL will be computed from the `window.location` object
 const URL =
@@ -8,9 +11,6 @@ const URL =
 export const socket: Socket<ServerToClientEvents, ClientToServerEvents> = io(
     URL,
     {
-        auth: {
-            token: `Bearer ${localStorage.getItem('jwt_secret')}`,
-        },
         autoConnect: false,
         ackTimeout: 1000,
         reconnection: true,

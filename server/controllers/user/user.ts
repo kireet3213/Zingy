@@ -38,7 +38,6 @@ export const searchUsers: RequestHandler = catchAsync(
         const users = await User.scope([
             'defaultScope',
             'withoutPassword',
-            { method: ['withoutCurrentUser', req.user] },
         ]).findAll({
             limit: perPage,
             offset: perPage * (page - 1),

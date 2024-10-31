@@ -1,7 +1,7 @@
-import { profile } from 'console';
 import { User } from '../models/user.model';
 import { UserProfile } from '../models/userProfile.model';
-const profileUrl = "https://png.pngtree.com/png-vector/20190710/ourmid/pngtree-user-vector-avatar-png-image_1541962.jpg";
+const profileUrl =
+    'https://png.pngtree.com/png-vector/20190710/ourmid/pngtree-user-vector-avatar-png-image_1541962.jpg';
 
 const users = [
     {
@@ -10,7 +10,7 @@ const users = [
         password: 'muadib2024',
         userProfile: {
             about: 'Destined leader of the Fremen and the Kwisatz Haderach.',
-            profileUrl
+            profileUrl,
         },
     },
     {
@@ -19,7 +19,7 @@ const users = [
         password: 'benegesserit2024',
         userProfile: {
             about: 'Bene Gesserit sister, devoted mother of Paul Atreides.',
-            profileUrl
+            profileUrl,
         },
     },
     {
@@ -28,7 +28,7 @@ const users = [
         password: 'caladan2024',
         userProfile: {
             about: 'The noble and fair ruler of Caladan, Duke of House Atreides.',
-            profileUrl
+            profileUrl,
         },
     },
     {
@@ -37,7 +37,7 @@ const users = [
         password: 'swordmaster2024',
         userProfile: {
             about: 'Master swordsman, loyal to House Atreides and friend of Paul.',
-            profileUrl
+            profileUrl,
         },
     },
     {
@@ -46,7 +46,7 @@ const users = [
         password: 'baliset2024',
         userProfile: {
             about: 'Warrior-poet, skilled in combat and music. Plays the baliset.',
-            profileUrl
+            profileUrl,
         },
     },
     {
@@ -55,7 +55,7 @@ const users = [
         password: 'sietch2024',
         userProfile: {
             about: 'Leader of Sietch Tabr, fierce protector of the desert ways.',
-            profileUrl
+            profileUrl,
         },
     },
     {
@@ -64,7 +64,7 @@ const users = [
         password: 'desertrose2024',
         userProfile: {
             about: 'Fremen warrior and beloved companion of Paul Atreides.',
-            profileUrl
+            profileUrl,
         },
     },
     {
@@ -73,7 +73,7 @@ const users = [
         password: 'giedi2024',
         userProfile: {
             about: 'Cunning and ruthless ruler of House Harkonnen.',
-            profileUrl
+            profileUrl,
         },
     },
     {
@@ -82,7 +82,7 @@ const users = [
         password: 'gladiator2024',
         userProfile: {
             about: 'Nephew of Baron Harkonnen, groomed for deadly ambitions.',
-            profileUrl
+            profileUrl,
         },
     },
     {
@@ -91,7 +91,7 @@ const users = [
         password: 'mentat2024',
         userProfile: {
             about: 'Mentat and strategist, fiercely loyal to House Atreides.',
-            profileUrl
+            profileUrl,
         },
     },
 ];

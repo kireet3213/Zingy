@@ -25,7 +25,7 @@ export const up: Migration = async function ({ context: queryInterface }) {
             allowNull: true,
             defaultValue: null,
         },
-        userId:{
+        userId: {
             type: DataTypes.UUID,
             allowNull: false,
         },

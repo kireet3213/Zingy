@@ -3,7 +3,6 @@
 import * as express from 'express';
 import { ValidationError } from 'sequelize';
 import { AuthorizationError } from '../helper/error-helpers';
-
 export function globalErrorHandler(
     err: unknown,
     _req: express.Request,

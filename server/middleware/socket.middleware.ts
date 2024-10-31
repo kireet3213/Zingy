@@ -18,12 +18,13 @@ export async function socketMiddleware(
     const token = authHeader.split(' ')[1];
     try {
         const payload = jwt.verify(token, secret) as jwt.JwtPayload;
-        await User.findOne({
+        const user = await User.findOne({
             where: {
                 id: payload.userId,
             },
             rejectOnEmpty: true,
         });
+        socket.handshake.auth.user = user;
     } catch (error) {
         if (error instanceof jwt.TokenExpiredError) {
             return next(new AuthorizationError('Token Expired'));

@@ -9,7 +9,7 @@ export const up: Migration = async function ({ context: queryInterface }) {
     });
 };
 
-export const down: Migration = async function ({ }) {
+export const down: Migration = async function () {
     //ignore
 };
 

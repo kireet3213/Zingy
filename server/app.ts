@@ -1,6 +1,7 @@
 /* eslint-disable no-console */
 import path from 'path';
 import * as dotenv from 'dotenv';
+
 dotenv.config({ path: path.join('./.env') });
 import express, { Application, Request, Response } from 'express';
 import cors from 'cors';
@@ -15,6 +16,12 @@ import { localStrategy } from './strategies/localStrategy';
 import { verifyToken } from './middleware/verification.middleware';
 import { Server } from 'socket.io';
 import { socketMiddleware } from './middleware/socket.middleware';
+import { Maybe } from './types/utility';
+import {
+    ServerToClientEvents,
+    ClientToServerEvents,
+    User,
+} from '../shared-types/socket';
 
 const app: Application = express();
 app.use(cors());
@@ -29,7 +36,7 @@ app.use(
         secret: 'asddddasdasd',
         resave: false,
         saveUninitialized: false,
-    })
+    }),
 );
 passport.use(localStrategy);
 
@@ -62,7 +69,7 @@ const server = app.listen(PORT, () => {
 });
 
 //socket io server
-const io = new Server(server, {
+const io = new Server<ClientToServerEvents, ServerToClientEvents>(server, {
     cors: {
         origin: process.env.CLIENT_URL || 'http://localhost:5173',
     },
@@ -74,9 +81,25 @@ const io = new Server(server, {
 
 io.use(socketMiddleware);
 
+const userSockets = new Map<
+    string,
+    { user: User; id: string; isConnected: boolean }
+>();
+
 io.on('connection', (socket) => {
+    // console.log("session store",sessionStore);
+
     console.log('Socket connected: ', socket.id);
-    console.log('Socket ', socket.handshake.auth);
+    const currentUser: Maybe<User> = socket.handshake.auth.user;
+
+    if (currentUser) {
+        socket.join(currentUser.id);
+        userSockets.set(currentUser.id, {
+            user: currentUser,
+            id: socket.id,
+            isConnected: true,
+        });
+    }
     socket.on('disconnect', (reason) => {
         console.log('Socket disconnected: ', socket.id, 'due to', reason);
     });
@@ -86,16 +109,64 @@ io.on('connection', (socket) => {
             'Reconnected socket server',
             socket.id,
             socket.rooms.entries(),
-            socket.data
+            socket.data,
         );
     }
-    socket.on('message', (message, acknowlegementCallback) => {
-        console.log(message);
-        acknowlegementCallback('acknowledged');
+    socket.on('private-message', (message, acknowledgementCallback) => {
+        console.log('private-message', message.to);
+
+        //send to self
+        if (currentUser?.id === message.to) {
+            socket.emit('private-message', {
+                message,
+                from: currentUser?.id,
+                to: message.to,
+            });
+            acknowledgementCallback('acknowledged', null);
+            return;
+        }
+        //send to other
+        socket.to(message.to as string).emit('private-message', {
+            message,
+            from: currentUser?.id as string,
+            to: message.to as string,
+        });
+        acknowledgementCallback('acknowledged', null);
+    });
+
+    const connectedUsers = Array.from(userSockets.values()).map(
+        ({ user, isConnected }) => ({
+            id: user.id,
+            user: user,
+            isConnected,
+        }),
+    );
+    socket.emit('connected-users', connectedUsers);
+    socket.broadcast.emit('new-user-connected', {
+        id: socket.handshake.auth.user.id,
+        user: socket.handshake.auth.user,
+    });
+
+    socket.on('disconnect', async () => {
+        if (currentUser) {
+            const matchingSockets = await io.in(currentUser.id).fetchSockets();
+
+            if (matchingSockets.length === 0) {
+                socket.broadcast.emit(
+                    'user-disconnected',
+                    socket.handshake.auth.user.id,
+                );
+                userSockets.set(currentUser.id, {
+                    user: currentUser,
+                    id: currentUser?.id,
+                    isConnected: false,
+                });
+            }
+        }
     });
 });
 
-setInterval(() => {
-    io.emit('ping', new Date().toLocaleString());
-    console.log('ping', new Date().toLocaleString());
-}, 1000);
+// setInterval(() => {
+//     io.emit('ping', new Date().toLocaleString());
+//     console.log('ping', new Date().toLocaleString());
+// }, 1000);

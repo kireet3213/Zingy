@@ -6,9 +6,8 @@ import { ConversationContainer } from './ConversationContainer';
 import { Navigate, Outlet } from 'react-router-dom';
 import { SideBar } from './SideBar';
 import { socket } from '../../socket';
-// import { Maybe } from '../../types/utility';
-import { Socket } from 'socket.io-client';
 import './css/dashboard.styles.css';
+import { ConversationContextProvider } from './ConversationContext';
 
 export function DashboardRoot() {
     const { authUser } = useContext(AuthContext);
@@ -16,27 +15,28 @@ export function DashboardRoot() {
     // const [socketErrors, setSocketErrors] = useState<Maybe<Error>>();
 
     useEffect(() => {
-        socket.connect();
+        const token = localStorage.getItem('jwt_secret');
+        if (token) {
+            socket.auth = {
+                token: `Bearer ${localStorage.getItem('jwt_secret')}`,
+            };
+            socket.connect();
+        }
+
         function onConnect() {
-            console.log('Connected');
+            console.log('connected');
+
             if (socket.recovered) {
                 console.log('Reconnected with server');
                 console.log(socket.id);
             }
-            // setIsConnected(true);
         }
 
-        function onDisconnect(reason: Socket.DisconnectReason) {
-            console.log('Disconnected', reason);
-            // setIsConnected(false);
-        }
         socket.on('connect', onConnect);
-        socket.on('disconnect', onDisconnect);
         socket.on('connect_error', (err) => {
             console.error(err);
             // setSocketErrors(err);
         });
-
         // socket.on('ping', (data) =>
         //     console.log('received recovered data', data)
         // );
@@ -54,26 +54,30 @@ export function DashboardRoot() {
         //     console.log('reconnection attempting');
         // });
 
+        socket.onAny((event, ...args) => {
+            console.log('Event', event, args);
+        });
 
         return () => {
-            socket.off('connect', onConnect);
-            socket.off('disconnect', onDisconnect);
+            socket.off('connect');
+            socket.off('connect_error');
             socket.disconnect();
         };
     }, []);
 
     return (
-        <div className="dashboard-root">
-            {/* <Text>{socketErrors?.message}</Text> */}
-            {!authUser ? (
-                <Navigate to="/"></Navigate>
-            ) : (
-                <Grid columns="5% 30% 65%" gap="1">
-                    <SideBar />
-                    <ConversationContainer />
-                    <Outlet />
-                </Grid>
-            )}
-        </div>
+        <ConversationContextProvider>
+            <div className="dashboard-root">
+                {!authUser ? (
+                    <Navigate to="/"></Navigate>
+                ) : (
+                    <Grid columns="minmax(60px,5%) 30% 65%" gap="1">
+                        <SideBar />
+                        <ConversationContainer />
+                        <Outlet />
+                    </Grid>
+                )}
+            </div>
+        </ConversationContextProvider>
     );
 }

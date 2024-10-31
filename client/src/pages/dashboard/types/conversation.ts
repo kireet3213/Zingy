@@ -1,9 +1,13 @@
-export type Conversation = {
-    id: number;
+import { Maybe } from '../../../types/utility';
+import { Message } from '@shared-types/socket';
+
+export type UserConversation = {
+    id: string;
     senderName: string;
-    lastMessage: string;
     unseenMessageCount: number;
-    latestMessageTimestamp: Date;
     profileImageUrl: string;
-    senderId: number;
+    isConnected?: Maybe<boolean>;
+    socketId?: Maybe<string>;
+    messages: Message[];
+    self: boolean;
 };

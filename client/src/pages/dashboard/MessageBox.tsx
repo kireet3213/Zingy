@@ -1,16 +1,23 @@
-import { forwardRef, useContext } from 'react';
+import { forwardRef } from 'react';
 import { Maybe } from '../../types/utility';
 import './css/message-container.styles.css';
-import { ConversationMessage } from './types/messages';
-import { AuthContext } from '../../AuthContext';
+import { Message } from '@shared-types/socket.ts';
 
 type MessageBoxProps = {
-    conversation: Maybe<ConversationMessage>;
+    messages: Maybe<Message[]>;
 };
+function getTime(date: string): Maybe<string> {
+    if (!date) return null;
+    const parts = date.split(' ')[4];
+    const hourAndMinutes = parts.split(':');
+    const hour = hourAndMinutes[0];
+    const minutes = hourAndMinutes[1];
+    return `${hour}:${minutes}`;
+}
 export const MessageBox = forwardRef<HTMLDivElement, MessageBoxProps>(
     function MessageBox(props, ref) {
-        const { authUser } = useContext(AuthContext);
-        const { conversation } = props;
+        const { messages } = props;
+
         return (
             <div
                 ref={ref}
@@ -23,19 +30,19 @@ export const MessageBox = forwardRef<HTMLDivElement, MessageBoxProps>(
                     justifyContent: 'end',
                 }}
             >
-                {conversation?.messages.map((message) => (
+                {messages?.map((message) => (
                     <span
                         key={message.id}
-                        className={`message-box ${authUser?.id === message.senderId ? 'current-user-message' : ''}`}
+                        className={`message-box ${message.fromSelf ? 'current-user-message' : ''}`}
                     >
-                        {message.text ??
-                            `There are forces at work that Lorem ipsum dolor, sit amet
-         consectetur adipisicing elit. Laboriosam unde voluptatem sint,
-         incidunt aliquid sunt earum eaque, dolorem beatae natus, eos magni
-         temporibus tenetur facere deleniti aspernatur! Laudantium mollitia
-         debitis quisquam quas labore ab perferendis tempore ratione
-         necessitatibus corrupti autem quae, dolore, placeat dolor ipsum
-         nihil molestiae dignissimos earum voluptas!`}
+                        <span>
+                            {message.text ??
+                                `There are forces at work that Lorem ipsum dolor, sit amet`}
+                        </span>
+                        <img className="sent-icon" src="/sent.svg" alt="" />
+                        <span className="message-time">
+                            {`${getTime(message.updatedAt)}`}
+                        </span>
                     </span>
                 ))}
             </div>

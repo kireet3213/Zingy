@@ -13,7 +13,8 @@
         "migration:run": "ts-node database/commands/RunMigrations.ts",
         "lint": "eslint --config eslint.config.mjs",
         "seed": "ts-node database/commands/RunSeeders.ts",
-        "migration:refresh": "ts-node database/commands/RefreshMigration.ts"
+        "migration:refresh": "ts-node database/commands/RefreshMigration.ts",
+        "format": "pnpm prettier --write ."
     },
     "engines": {
         "npm": "use pnpm",
@@ -54,6 +55,7 @@
         "eslint": "9.x",
         "globals": "^15.8.0",
         "nodemon": "^3.1.4",
+        "prettier": "^3.3.3",
         "ts-node": "^10.9.2",
         "typescript": "^5.5.4",
         "typescript-eslint": "^7.18.0"

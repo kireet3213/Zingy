@@ -25,12 +25,12 @@ import { UserProfile } from './userProfile.model';
                 [Op.ne]: user.id,
             },
         },
-    })
+    }),
 }))
-@DefaultScope(()=>{
-   return {
-    include: [UserProfile],
-   }
+@DefaultScope(() => {
+    return {
+        include: [UserProfile],
+    };
 })
 @Table({
     timestamps: true,
@@ -66,7 +66,7 @@ export class User extends Model {
     })
     password: string;
 
-    @HasOne(() => UserProfile, { as: "userProfile"})
+    @HasOne(() => UserProfile, { as: 'userProfile' })
     userProfile: UserProfile;
 
     @BeforeCreate
@@ -81,5 +81,10 @@ export class User extends Model {
             const hashed = await getHashedPassword(user.password);
             user.password = hashed;
         }
+    }
+    public toJSON(): object {
+        const values = Object.assign({}, this.get());
+        delete values.password;
+        return values;
     }
 }

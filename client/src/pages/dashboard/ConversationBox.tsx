@@ -1,16 +1,34 @@
-import { Conversation } from './types/conversation';
+import { UserConversation } from './types/conversation';
 import './css/conversation-box.styles.css';
 import { NavLink, useNavigate } from 'react-router-dom';
+import { Maybe } from '../../types/utility';
+import { useEffect, useState } from 'react';
 
 type ConversationBoxProps = {
-    conversation: Conversation;
+    conversationUsers: Maybe<UserConversation[]>;
 };
-export const ConversationBox = ({ conversation }: ConversationBoxProps) => {
-    const { profileImageUrl, senderName, lastMessage, unseenMessageCount, id } =
-        conversation;
+const UserComponent = ({
+    conversation,
+}: {
+    conversation: UserConversation;
+}) => {
+    const {
+        profileImageUrl,
+        senderName,
+        unseenMessageCount,
+        id,
+        isConnected,
+        socketId,
+        messages,
+    } = conversation;
     const navigate = useNavigate();
+
     return (
-        <NavLink to={`/dashboard/${id}`} className="conversation-box">
+        <NavLink
+            to={`/dashboard/${id}`}
+            state={{ socketId, isConnected }}
+            className="conversation-box"
+        >
             <div className="avatar-image-container">
                 <img
                     src={
@@ -22,10 +40,17 @@ export const ConversationBox = ({ conversation }: ConversationBoxProps) => {
                     className="avatar-image"
                     onClick={(e) => e.preventDefault()}
                 />
+                <span
+                    className={`status-icon ${isConnected ? 'online' : 'offline'}`}
+                ></span>
             </div>
             <div
                 className="conversation-info"
-                onClick={() => navigate('/dashboard/' + id)}
+                onClick={() =>
+                    navigate('/dashboard/' + id, {
+                        state: { socketId, isConnected },
+                    })
+                }
             >
                 <div className="conversation-username-and-last-message-container">
                     <span
@@ -37,10 +62,7 @@ export const ConversationBox = ({ conversation }: ConversationBoxProps) => {
                         {senderName || 'UserName'}
                     </span>
                     <div className="last-message">
-                        {lastMessage ??
-                            `This is a last message received from server that might be
-                    very long. Lorem ipsum dolor sit, amet consectetur
-                    adipisicing elit. Sapiente, distinctio?`}
+                        {`${messages.at(-1)?.text || ''}`}
                     </div>
                 </div>
                 <div className="last-message-timestamp-and-unseen-message-count">
@@ -59,4 +81,20 @@ export const ConversationBox = ({ conversation }: ConversationBoxProps) => {
             </div>
         </NavLink>
     );
+};
+export const ConversationBox = ({
+    conversationUsers,
+}: ConversationBoxProps) => {
+    const [ConversationUsers, setConversationUsers] = useState<
+        UserConversation[]
+    >([]);
+    useEffect(() => {
+        if (conversationUsers) {
+            setConversationUsers(conversationUsers);
+        }
+    }, [conversationUsers]);
+
+    return ConversationUsers?.map((conversation) => (
+        <UserComponent key={conversation.id} conversation={conversation} />
+    ));
 };

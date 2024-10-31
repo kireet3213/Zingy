@@ -1,10 +1,10 @@
 import React, { createContext, PropsWithChildren, useState } from 'react';
-import { AuthUser } from './types/user';
+import { User } from '@shared-types/socket.ts';
 import { Maybe } from './types/utility';
 
 type AuthContextProps = PropsWithChildren<{
-    authUser?: Maybe<AuthUser>;
-    setAuthUser?: React.Dispatch<React.SetStateAction<Maybe<AuthUser>>>;
+    authUser?: Maybe<User>;
+    setAuthUser?: React.Dispatch<React.SetStateAction<Maybe<User>>>;
 }>;
 
 export const AuthContext = createContext<AuthContextProps>({
@@ -13,7 +13,7 @@ export const AuthContext = createContext<AuthContextProps>({
 });
 
 export const AuthProvider = ({ children }: AuthContextProps) => {
-    const [authUser, setAuthUser] = useState<Maybe<AuthUser>>(
+    const [authUser, setAuthUser] = useState<Maybe<User>>(
         JSON.parse(localStorage.getItem('auth_user') || 'null')
     );
     return (
