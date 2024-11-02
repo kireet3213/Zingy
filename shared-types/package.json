@@ -1,0 +1,16 @@
+{
+    "name": "shared-types",
+    "version": "1.0.0",
+    "description": "",
+    "main": "index.js",
+    "scripts": {
+        "check-types": "tsc -p tsconfig.json",
+        "build": "tsc -b"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "devDependencies": {
+        "typescript": "^5.5.4"
+    }
+}

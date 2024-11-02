@@ -1,5 +1,6 @@
 {
     "compilerOptions": {
+        // "include": ["."],
         /* Visit https://aka.ms/tsconfig to read more about this file */
 
         /* Language and Environment */
@@ -26,8 +27,12 @@
         "removeComments": true,
         "paths": {
             "@shared-paths/*": ["../shared-types"]
-        }
+        },
+        // "rootDir": "./"
     },
-    "include": ["../server"],
-    "exclude": ["node_modules"]
+
+    "exclude": ["node_modules"],
+    "references": [{
+        "path": "../shared-types/"
+    }]
 }
