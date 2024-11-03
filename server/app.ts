@@ -43,8 +43,12 @@ passport.use(localStrategy);
 app.get('/', (_req: Request, res: Response) => {
     res.send('Express server with TypeScript');
 });
-app.use('/user', userRoutes);
-app.use('/auth', authRoutes);
+
+const apiRouter = express.Router();
+apiRouter.use('/user', userRoutes);
+apiRouter.use('/auth', authRoutes);
+
+app.use('/api',apiRouter);
 app.use('/protected', verifyToken, (_req: Request, res: Response) => {
     res.status(200).json({ verified: true });
 });

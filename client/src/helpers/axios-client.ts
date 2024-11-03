@@ -1,7 +1,7 @@
 import axios, { AxiosRequestConfig } from 'axios';
 
 const axiosInstance = axios.create({
-    baseURL: import.meta.env.VITE_API_URL,
+    baseURL: `${import.meta.env.VITE_API_URL}/api`,
     timeout: 2000,
     headers: {
         'ZINGY-Custom-Header': 'ZINGGGGED',
