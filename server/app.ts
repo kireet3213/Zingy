@@ -2,7 +2,7 @@
 import path from 'path';
 import * as dotenv from 'dotenv';
 
-dotenv.config({ path: path.join(__dirname,'./.env') });
+dotenv.config({ path: path.join(__dirname, './.env') });
 import express, { Application, Request, Response } from 'express';
 import cors from 'cors';
 import bodyParser from 'body-parser';
@@ -26,7 +26,7 @@ import {
 const app: Application = express();
 app.use(cors());
 // parse requests of content-type - application/json
-console.log(path.join(__dirname,'.env'));
+console.log(path.join(__dirname, '.env'));
 app.use(bodyParser.json());
 // parse requests of content-type - application/x-www-form-urlencoded
 
@@ -36,7 +36,7 @@ app.use(
         secret: 'asddddasdasd',
         resave: false,
         saveUninitialized: false,
-    }),
+    })
 );
 passport.use(localStrategy);
 
@@ -48,7 +48,7 @@ const apiRouter = express.Router();
 apiRouter.use('/user', userRoutes);
 apiRouter.use('/auth', authRoutes);
 
-app.use('/api',apiRouter);
+app.use('/api', apiRouter);
 app.use('/protected', verifyToken, (_req: Request, res: Response) => {
     res.status(200).json({ verified: true });
 });
@@ -113,7 +113,7 @@ io.on('connection', (socket) => {
             'Reconnected socket server',
             socket.id,
             socket.rooms.entries(),
-            socket.data,
+            socket.data
         );
     }
     socket.on('private-message', (message, acknowledgementCallback) => {
@@ -143,7 +143,7 @@ io.on('connection', (socket) => {
             id: user.id,
             user: user,
             isConnected,
-        }),
+        })
     );
     socket.emit('connected-users', connectedUsers);
     socket.broadcast.emit('new-user-connected', {
@@ -158,7 +158,7 @@ io.on('connection', (socket) => {
             if (matchingSockets.length === 0) {
                 socket.broadcast.emit(
                     'user-disconnected',
-                    socket.handshake.auth.user.id,
+                    socket.handshake.auth.user.id
                 );
                 userSockets.set(currentUser.id, {
                     user: currentUser,

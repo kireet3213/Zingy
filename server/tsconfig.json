@@ -27,12 +27,14 @@
         "removeComments": true,
         "paths": {
             "@shared-paths/*": ["../shared-types"]
-        },
+        }
         // "rootDir": "./"
     },
 
     "exclude": ["node_modules"],
-    "references": [{
-        "path": "../shared-types/"
-    }]
+    "references": [
+        {
+            "path": "../shared-types/"
+        }
+    ]
 }
