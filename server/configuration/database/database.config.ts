@@ -1,13 +1,10 @@
 import { Sequelize } from 'sequelize-typescript';
 import { User } from '../../database/models/user.model';
 import { Dialect } from 'sequelize';
-import path from 'path';
-import * as dotenv from 'dotenv';
 import { Conversation } from '../../database/models/conversation.model';
 import { ConversationUser } from '../../database/models/conversationUser.model';
 import { Message } from '../../database/models/message.model';
 import { UserProfile } from '../../database/models/userProfile.model';
-dotenv.config({ path: path.join('./.env') });
 
 const connection = new Sequelize({
     dialect: (process.env.DB_DIALECT || 'mysql') as Dialect,
