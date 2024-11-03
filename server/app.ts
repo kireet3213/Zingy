@@ -2,7 +2,7 @@
 import path from 'path';
 import * as dotenv from 'dotenv';
 
-dotenv.config({ path: path.join('./.env') });
+dotenv.config({ path: path.join(__dirname,'./.env') });
 import express, { Application, Request, Response } from 'express';
 import cors from 'cors';
 import bodyParser from 'body-parser';
@@ -26,7 +26,7 @@ import {
 const app: Application = express();
 app.use(cors());
 // parse requests of content-type - application/json
-
+console.log(path.join(__dirname,'.env'));
 app.use(bodyParser.json());
 // parse requests of content-type - application/x-www-form-urlencoded
 
