@@ -1,9 +1,7 @@
-// const path = require('path');
-import { path } from 'node:path';
-import { config } from 'dotenv';
-config({
-    path: path.join(__dirname, '.env'),
-});
+/* eslint-disable @typescript-eslint/no-var-requires */
+const path = require('node:path');
+const dotenv = require('dotenv');
+dotenv.config({ path: path.join(__dirname, '.env') });
 
 module.exports = {
     apps: [
