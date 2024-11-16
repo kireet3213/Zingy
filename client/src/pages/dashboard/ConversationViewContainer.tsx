@@ -9,6 +9,8 @@ import { ConversationContext } from './ConversationContext';
 import { MessageBox } from './MessageBox';
 import { v7 as uuidV7 } from 'uuid';
 import { AuthContext } from '../../AuthContext';
+import { useMessageEvents } from '../../hooks/useMessageEvents.ts';
+import { Maybe } from '../../types/utility.ts';
 
 const sendMessageTone = new Audio('/happy-pop.mp3');
 
@@ -29,12 +31,9 @@ const acknowledgementCallback: AcknowledgementCallback = (
 };
 
 export function ConversationViewContainer() {
-    const {
-        state: { socketId, isConnected } = {
-            socketId: null,
-            isConnected: null,
-        },
-    } = useLocation();
+    const location = useLocation();
+    const state: Maybe<{ socketId: string; isConnected: boolean }> =
+        location.state;
     const { authUser } = useContext(AuthContext);
 
     const [currentMessage, setCurrentMessage] = useState('');
@@ -45,9 +44,11 @@ export function ConversationViewContainer() {
     const { conversationUsers, setConversationUsers } =
         useContext(ConversationContext);
 
+    useMessageEvents(state?.socketId);
+
     useEffect(() => {
-        const user = conversationUsers?.find(
-            (user) => user.socketId === socketId
+        const user = conversationUsers.find(
+            (user) => user.socketId === state?.socketId
         );
         if (user) {
             setMessages(user.messages);
@@ -58,28 +59,7 @@ export function ConversationViewContainer() {
             messageBoxRef.current.scrollTop =
                 messageBoxRef.current.scrollHeight;
         }
-    }, [conversationUsers, socketId]);
-
-    useEffect(() => {
-        socket.on('private-message', (payload) => {
-            setConversationUsers((prev) => {
-                const newMessage = prev.map((user) => {
-                    if (user.id === payload.from) {
-                        const message: Message = {
-                            ...payload.message,
-                            fromSelf: false,
-                        };
-                        user.messages.push(message);
-                    }
-                    return user;
-                });
-                return newMessage;
-            });
-        });
-        return () => {
-            socket.off('private-message');
-        };
-    }, [authUser?.id, setConversationUsers]);
+    }, [conversationUsers, state?.socketId]);
 
     async function submitMessage() {
         if (sendMessageFieldRef.current) {
@@ -91,10 +71,10 @@ export function ConversationViewContainer() {
                 createdAt: new Date().toString(),
                 updatedAt: new Date().toString(),
                 text: currentMessage,
-                to: socketId,
+                to: state?.socketId || '',
                 fromSelf: true,
             };
-            if (isConnected && socketId) {
+            if (state?.isConnected && state?.socketId) {
                 socket
                     .timeout(5000)
                     .emit(
@@ -102,10 +82,10 @@ export function ConversationViewContainer() {
                         messageDetails,
                         acknowledgementCallback
                     );
-                if (authUser?.id !== socketId) {
+                if (authUser?.id !== state?.socketId) {
                     setConversationUsers((prev) => {
                         const newPrev = prev.map((user) => {
-                            if (user.id === socketId) {
+                            if (user.id === state?.socketId) {
                                 user.messages.push({ ...messageDetails });
                             }
                             return user;

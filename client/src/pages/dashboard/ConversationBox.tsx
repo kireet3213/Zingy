@@ -2,7 +2,6 @@ import { UserConversation } from './types/conversation';
 import './css/conversation-box.styles.css';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { Maybe } from '../../types/utility';
-import { useEffect, useState } from 'react';
 
 type ConversationBoxProps = {
     conversationUsers: Maybe<UserConversation[]>;
@@ -21,6 +20,11 @@ const UserComponent = ({
         socketId,
         messages,
     } = conversation;
+    const lastMessageTime = messages
+        ?.at(-1)
+        ?.createdAt.split(' ')[4]
+        .split(':')
+        .slice(0, -3);
     const navigate = useNavigate();
 
     return (
@@ -72,7 +76,7 @@ const UserComponent = ({
                             fontSize: 'var(--space-3)',
                         }}
                     >
-                        13:45
+                        {lastMessageTime}
                     </span>
                     <span className="unseen-message-count">
                         {unseenMessageCount ?? undefined}
@@ -85,16 +89,7 @@ const UserComponent = ({
 export const ConversationBox = ({
     conversationUsers,
 }: ConversationBoxProps) => {
-    const [ConversationUsers, setConversationUsers] = useState<
-        UserConversation[]
-    >([]);
-    useEffect(() => {
-        if (conversationUsers) {
-            setConversationUsers(conversationUsers);
-        }
-    }, [conversationUsers]);
-
-    return ConversationUsers?.map((conversation) => (
+    return (conversationUsers || []).map((conversation) => (
         <UserComponent key={conversation.id} conversation={conversation} />
     ));
 };

@@ -16,16 +16,20 @@ import { post } from '../helpers/axios-client';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { useContext, useState } from 'react';
 import { AuthContext } from '../AuthContext';
+import { Maybe } from '../types/utility.ts';
+import { User } from '@shared-types/socket.ts';
+import type { AxiosResponse } from 'axios';
 
 export const LoginPage = () => {
     const navigate = useNavigate();
-    const [status, setStatus] = useState<boolean>(false);
     const { authUser, setAuthUser } = useContext(AuthContext);
+    const [status, setStatus] = useState<boolean>(false);
+    const [error, setError] = useState<Maybe<string>>(null);
     if (!setAuthUser) return;
     return (
         <>
             {authUser ? (
-                <Navigate to="/dashboard" />
+                <Navigate to="/" />
             ) : (
                 <Container size="1" mt="9">
                     <Card
@@ -52,10 +56,19 @@ export const LoginPage = () => {
                                 const postData = Object.fromEntries(
                                     new FormData(e.currentTarget)
                                 );
-                                const response = await post(
-                                    'auth/login',
-                                    postData
+                                const response: Maybe<
+                                    AxiosResponse<{
+                                        authUser: User;
+                                        secret: string;
+                                        success: boolean;
+                                    }>
+                                > = await post('auth/login', postData).catch(
+                                    (error) => {
+                                        setError(error.message);
+                                        return null;
+                                    }
                                 );
+                                if (!response) return;
                                 setStatus(response.data.success);
                                 localStorage.setItem(
                                     'jwt_secret',
@@ -165,6 +178,19 @@ export const LoginPage = () => {
                                     Login
                                 </Button>
                             </Form.Submit>
+                            {error && (
+                                <Text
+                                    as="p"
+                                    style={{ textAlign: 'center' }}
+                                    weight="medium"
+                                    mt="1"
+                                    size="2"
+                                    trim="both"
+                                    color="red"
+                                >
+                                    {error}
+                                </Text>
+                            )}
                             <Text
                                 as="div"
                                 style={{

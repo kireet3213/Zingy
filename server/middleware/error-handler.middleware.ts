@@ -1,8 +1,13 @@
 //global error handler middleware
 
 import * as express from 'express';
-import { ValidationError } from 'sequelize';
-import { AuthorizationError } from '../helper/error-helpers';
+import { BaseError } from 'sequelize';
+import {
+    AuthorizationError,
+    UnknownError,
+    UnprocessableError,
+} from '../helper/error-helpers';
+
 export function globalErrorHandler(
     err: unknown,
     _req: express.Request,
@@ -10,19 +15,18 @@ export function globalErrorHandler(
     _next: express.NextFunction
 ): void {
     // eslint-disable-next-line no-console
-    console.error(err);
+    console.error('here', err);
     if (Array.isArray(err)) {
-        const errorObj = err.map((e) => {
-            return e.constraints;
-        });
-        res.status(422).send(errorObj);
+        const error = err[0].constraints || {
+            message: 'Unexpected error occurred.',
+        };
+        const message = Object.values(error)[0] as string;
+        res.status(422).send(new UnprocessableError(message));
     } else if (err instanceof AuthorizationError) {
         res.status(401).json(err);
-    } else if (err instanceof ValidationError) {
-        const error = JSON.parse(JSON.stringify(err.errors[0]));
-        delete error.instance;
-        res.status(422).json(error);
+    } else if (err instanceof BaseError) {
+        res.status(422).json(new UnprocessableError(err.name));
     } else {
-        res.status(500).send(err);
+        res.status(500).send(new UnknownError(JSON.stringify(err)));
     }
 }

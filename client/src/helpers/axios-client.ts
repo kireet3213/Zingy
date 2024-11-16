@@ -9,7 +9,20 @@ const axiosInstance = axios.create({
     },
 });
 
-export function post<T>(url: string, data: T, config?: AxiosRequestConfig) {
+axiosInstance.interceptors.response.use(
+    (response) => {
+        return response;
+    },
+    (error) => {
+        return Promise.reject(error.response.data);
+    }
+);
+
+export async function post<T>(
+    url: string,
+    data: T,
+    config?: AxiosRequestConfig
+) {
     return axiosInstance.post(url, data, { ...config });
 }
 

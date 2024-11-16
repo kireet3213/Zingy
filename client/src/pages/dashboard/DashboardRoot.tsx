@@ -54,9 +54,9 @@ export function DashboardRoot() {
         //     console.log('reconnection attempting');
         // });
 
-        socket.onAny((event, ...args) => {
-            console.log('Event', event, args);
-        });
+        // socket.onAny((event, ...args) => {
+        //     console.log('Event', event, args);
+        // });
 
         return () => {
             socket.off('connect');

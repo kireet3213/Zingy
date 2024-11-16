@@ -169,8 +169,3 @@ io.on('connection', (socket) => {
         }
     });
 });
-
-// setInterval(() => {
-//     io.emit('ping', new Date().toLocaleString());
-//     console.log('ping', new Date().toLocaleString());
-// }, 1000);
