@@ -2,6 +2,7 @@ import { UserConversation } from './types/conversation';
 import './css/conversation-box.styles.css';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { Maybe } from '../../types/utility';
+import { useMessageEvents } from '../../hooks/useMessageEvents.ts';
 
 type ConversationBoxProps = {
     conversationUsers: Maybe<UserConversation[]>;
@@ -78,9 +79,13 @@ const UserComponent = ({
                     >
                         {lastMessageTime}
                     </span>
-                    <span className="unseen-message-count">
-                        {unseenMessageCount ?? undefined}
-                    </span>
+                    {unseenMessageCount > 0 ? (
+                        <span className="unseen-message-count">
+                            {unseenMessageCount}
+                        </span>
+                    ) : (
+                        <></>
+                    )}
                 </div>
             </div>
         </NavLink>
@@ -89,6 +94,8 @@ const UserComponent = ({
 export const ConversationBox = ({
     conversationUsers,
 }: ConversationBoxProps) => {
+    useMessageEvents();
+
     return (conversationUsers || []).map((conversation) => (
         <UserComponent key={conversation.id} conversation={conversation} />
     ));

@@ -9,25 +9,24 @@ import { ConversationContext } from './ConversationContext';
 import { MessageBox } from './MessageBox';
 import { v7 as uuidV7 } from 'uuid';
 import { AuthContext } from '../../AuthContext';
-import { useMessageEvents } from '../../hooks/useMessageEvents.ts';
 import { Maybe } from '../../types/utility.ts';
 
 const sendMessageTone = new Audio('/happy-pop.mp3');
 
 const acknowledgementCallback: AcknowledgementCallback = (
     error,
-    acknowlegementResponse
+    acknowledgementResponse,
 ) => {
     if (error) {
         // the other side did not acknowledge the event in the given delay
         // eslint-disable-next-line no-console
         console.error(
             'Timeout Error. Not Acknowledged. Need to send data again',
-            error
+            error,
         );
     }
     // eslint-disable-next-line no-console
-    console.log('ackResponse', acknowlegementResponse);
+    console.log('ackResponse', acknowledgementResponse);
 };
 
 export function ConversationViewContainer() {
@@ -44,11 +43,9 @@ export function ConversationViewContainer() {
     const { conversationUsers, setConversationUsers } =
         useContext(ConversationContext);
 
-    useMessageEvents(state?.socketId);
-
     useEffect(() => {
         const user = conversationUsers.find(
-            (user) => user.socketId === state?.socketId
+            (user) => user.socketId === state?.socketId,
         );
         if (user) {
             setMessages(user.messages);
@@ -80,7 +77,7 @@ export function ConversationViewContainer() {
                     .emit(
                         'private-message',
                         messageDetails,
-                        acknowledgementCallback
+                        acknowledgementCallback,
                     );
                 if (authUser?.id !== state?.socketId) {
                     setConversationUsers((prev) => {
