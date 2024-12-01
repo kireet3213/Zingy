@@ -1,7 +1,7 @@
 import { Umzug, SequelizeStorage } from 'umzug';
 import * as path from 'node:path';
 import * as dotenv from 'dotenv';
-dotenv.config({ path: path.join('../.env') });
+dotenv.config({ path: path.join(__dirname, '../.env') });
 import connection from '../configuration/database/database.config';
 
 export const umzug = new Umzug({

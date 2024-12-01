@@ -1,6 +1,13 @@
+import path from 'path';
+import * as dotenv from 'dotenv';
+dotenv.config({ path: path.join(__dirname, '../../.env') });
 import { Sequelize } from 'sequelize-typescript';
 import { User } from '../../database/models/user.model';
 import { Dialect } from 'sequelize';
+import { Conversation } from '../../database/models/conversation.model';
+import { ConversationUser } from '../../database/models/conversationUser.model';
+import { Message } from '../../database/models/message.model';
+import { UserProfile } from '../../database/models/userProfile.model';
 
 const connection = new Sequelize({
     dialect: (process.env.DB_DIALECT || 'mysql') as Dialect,
@@ -14,7 +21,7 @@ const connection = new Sequelize({
               console.log('\x1b[35m%s\x1b[0m', query)
             : undefined;
     },
-    models: [User],
+    models: [User, Conversation, ConversationUser, Message, UserProfile],
     port: (process.env.DB_PORT || 3306) as number,
 });
 

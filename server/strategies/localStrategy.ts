@@ -17,20 +17,16 @@ export const localStrategy = new Strategy(
                 where: {
                     email,
                 },
-                rejectOnEmpty: true,
             });
 
             const isValidPassword = await comparePassword(
                 password,
-                user.password
+                user?.password || ''
             );
 
             if (!user || !isValidPassword) {
-                return cb(null, false, {
-                    message: 'Incorrect email or password.',
-                });
+                return cb('Incorrect email or password.');
             }
-
             return cb(null, user);
         } catch (error) {
             return cb(error);

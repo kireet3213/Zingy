@@ -4,30 +4,53 @@ import {
     Column,
     DataType,
     PrimaryKey,
-    AutoIncrement,
     Unique,
     BeforeCreate,
+    BeforeBulkCreate,
+    Scopes,
+    HasOne,
+    DefaultScope,
 } from 'sequelize-typescript';
 import { getHashedPassword } from '../../helper/bcrypt-helpers';
+import { Op } from 'sequelize';
+import { UserProfile } from './userProfile.model';
 
+@Scopes(() => ({
+    withoutPassword: {
+        attributes: { exclude: ['password'] },
+    },
+    withoutCurrentUser: (user: User) => ({
+        where: {
+            id: {
+                [Op.ne]: user.id,
+            },
+        },
+    }),
+}))
+@DefaultScope(() => {
+    return {
+        include: [UserProfile],
+    };
+})
 @Table({
     timestamps: true,
     tableName: 'users',
 })
 export class User extends Model {
     @PrimaryKey
-    @AutoIncrement
     @Column({
-        type: DataType.BIGINT,
+        type: DataType.UUIDV4,
         allowNull: false,
+        defaultValue: DataType.UUIDV4,
     })
-    id: number;
+    id: string;
 
+    @Unique
     @Column({
         type: DataType.STRING,
         allowNull: false,
     })
-    name: string;
+    username: string;
 
     @Unique
     @Column({
@@ -43,9 +66,25 @@ export class User extends Model {
     })
     password: string;
 
+    @HasOne(() => UserProfile, { as: 'userProfile' })
+    userProfile: UserProfile;
+
     @BeforeCreate
     static async beforeCreateHook(user: User) {
         const hashed = await getHashedPassword(user.password);
         user.password = hashed;
+    }
+
+    @BeforeBulkCreate
+    static async beforeBulkCreateHook(users: User[]) {
+        for (const user of users) {
+            const hashed = await getHashedPassword(user.password);
+            user.password = hashed;
+        }
+    }
+    public toJSON(): object {
+        const values = Object.assign({}, this.get());
+        delete values.password;
+        return values;
     }
 }

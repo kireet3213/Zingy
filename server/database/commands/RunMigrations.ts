@@ -4,7 +4,7 @@ import { umzug } from '..';
 
 const command = process.argv[2];
 
-if (command === '--runAll') {
+if (command === '--runAll' || !command) {
     runAllMigrations();
 }
 if (command === '--deleteAll') {

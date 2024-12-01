@@ -8,28 +8,46 @@ import {
     TextField,
     Link as RadixLink,
     Callout,
+    Text,
 } from '@radix-ui/themes';
 import { useNavigate } from 'react-router-dom';
 import { post } from '../helpers/axios-client';
 import { useState } from 'react';
+import { Maybe } from '../types/utility.ts';
+import type { AxiosResponse } from 'axios';
 
 export const RegisterUser = () => {
     const navigate = useNavigate();
-    const [status, setStatus] = useState<number | undefined>();
+    const [status, setStatus] = useState<boolean>(false);
+    const [error, setError] = useState<Maybe<string>>(null);
+
     return (
         <Container size="1" mt="9">
             <Card variant="classic" size="5" style={{ position: 'relative' }}>
                 <Form.Root
                     onSubmit={async (e) => {
                         e.preventDefault();
+                        setError(null);
                         const postData = Object.fromEntries(
                             new FormData(e.currentTarget)
                         );
-                        const response = await post('user/register', postData);
-                        setStatus(response.status);
+                        const response: Maybe<
+                            AxiosResponse<{
+                                data: Record<string, string>;
+                                message: boolean;
+                            }>
+                        > = await post('user/register', postData).catch(
+                            (error) => {
+                                setError(error.message);
+                                return null;
+                            }
+                        );
+                        if (response) {
+                            setStatus(!!response.data.data);
+                        }
                     }}
                 >
-                    <Form.Field name="name">
+                    <Form.Field name="username">
                         <Form.ValidityState>
                             {(validity) => {
                                 return (
@@ -153,8 +171,21 @@ export const RegisterUser = () => {
                             Register
                         </Button>
                     </Form.Submit>
+                    {error && (
+                        <Text
+                            as="p"
+                            style={{ textAlign: 'center' }}
+                            weight="medium"
+                            mt="1"
+                            size="2"
+                            trim="both"
+                            color="red"
+                        >
+                            {error}
+                        </Text>
+                    )}
                 </Form.Root>
-                {status === 200 && (
+                {status && (
                     <Callout.Root color="green">
                         <Callout.Icon>
                             <InfoCircledIcon />
@@ -162,6 +193,10 @@ export const RegisterUser = () => {
                         <Callout.Text>
                             Registration Successful.{' '}
                             <RadixLink
+                                style={{
+                                    cursor: 'pointer',
+                                    textDecoration: 'underline',
+                                }}
                                 onClick={() => navigate({ pathname: '/' })}
                             >
                                 Login Now

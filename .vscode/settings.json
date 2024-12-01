@@ -6,5 +6,6 @@
         "javascriptreact",
         "typescript",
         "typescriptreact"
-    ]
+    ],
+    "editor.fontSize": 15
 }

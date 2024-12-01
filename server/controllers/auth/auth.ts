@@ -11,6 +11,9 @@ export const authenticateUser = catchAsync(
             algorithm: 'HS256',
             expiresIn: '2d',
         });
-        return res.status(200).json({ success: true, secret: token });
+        const authUser = req.user as Partial<User>;
+        delete authUser.password;
+
+        return res.status(200).json({ success: true, secret: token, authUser });
     }
 );

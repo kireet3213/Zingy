@@ -6,3 +6,21 @@ export class AuthorizationError extends Error {
         super();
     }
 }
+
+export class UnprocessableError extends Error {
+    constructor(
+        public message: string = 'Validation Error',
+        public statusCode: number = 422
+    ) {
+        super();
+    }
+}
+
+export class UnknownError extends Error {
+    constructor(
+        public message: string = 'UnknownError',
+        public statusCode: number = 400
+    ) {
+        super();
+    }
+}

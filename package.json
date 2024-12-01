@@ -4,9 +4,10 @@
     "description": "",
     "main": "index.js",
     "scripts": {
-        "prettier": "prettier server/**/*.{js,ts,tsx} client/**/*.{js,ts,tsx} --write",
+        "format": "pnpm -r format",
         "lint": "pnpm -r run lint",
-        "check-types": "pnpm -r run check-types"
+        "check-types": "pnpm -r run check-types",
+        "install-shared": "pnpm --filter shared-types build"
     },
     "engines": {
         "npm": "use pnpm",
@@ -14,8 +15,5 @@
     },
     "keywords": [],
     "author": "",
-    "license": "ISC",
-    "devDependencies": {
-        "prettier": "^3.3.3"
-    }
+    "license": "ISC"
 }

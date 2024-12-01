@@ -9,11 +9,15 @@ export function verifyToken(
     _res: express.Response,
     next: express.NextFunction
 ): void {
-    validateBearerToken(req.header('Authorization'));
-    next();
+    validateBearerToken(req.header('Authorization'))
+        .then((user) => {
+            req.user = user;
+            next();
+        })
+        .catch((error) => next(error));
 }
 
-function validateBearerToken(authHeader: string | undefined) {
+export async function validateBearerToken(authHeader: string | undefined) {
     if (!authHeader || !authHeader.includes('Bearer ')) {
         throw new AuthorizationError('Invalid Bearer Token');
     }
@@ -21,13 +25,23 @@ function validateBearerToken(authHeader: string | undefined) {
     const token = authHeader.split(' ')[1];
     try {
         const payload = jwt.verify(token, secret) as jwt.JwtPayload;
-        User.findOne({
+        const user = await User.findOne({
             where: {
                 id: payload.userId,
             },
             rejectOnEmpty: true,
         });
+        return user;
     } catch (error) {
+        if (error instanceof jwt.TokenExpiredError) {
+            throw new AuthorizationError('Token Expired');
+        }
+        if (error instanceof jwt.NotBeforeError) {
+            throw new AuthorizationError('Invalid Token');
+        }
+        if (error instanceof jwt.JsonWebTokenError) {
+            throw new AuthorizationError('Invalid Token');
+        }
         throw new AuthorizationError(JSON.stringify(error));
     }
 }
