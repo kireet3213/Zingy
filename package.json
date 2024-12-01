@@ -6,7 +6,8 @@
     "scripts": {
         "format": "pnpm -r format",
         "lint": "pnpm -r run lint",
-        "check-types": "pnpm -r run check-types"
+        "check-types": "pnpm -r run check-types",
+        "install-shared": "pnpm --filter shared-types build"
     },
     "engines": {
         "npm": "use pnpm",
