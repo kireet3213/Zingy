@@ -16,6 +16,7 @@ jobs:
       with:
        node-version: 20
     - run: npm i -g pnpm@9
+    - run: rm -rf node_modules
     - run: pnpm i
     - run: pnpm run check-types
     - run: pnpm run lint
