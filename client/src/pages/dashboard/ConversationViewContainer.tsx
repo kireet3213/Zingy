@@ -99,7 +99,6 @@ export function ConversationViewContainer() {
             </div>
             <TextField.Root
                 ref={sendMessageFieldRef}
-                radius="full"
                 size="3"
                 placeholder="Reply…"
                 onChange={(e) => {
@@ -111,6 +110,7 @@ export function ConversationViewContainer() {
                         submitMessage();
                     }
                 }}
+                className="rounded-full border mb-0.5"
                 variant="classic"
             >
                 <TextField.Slot side="right">
