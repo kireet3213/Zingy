@@ -4,7 +4,6 @@ import { useLocation } from 'react-router-dom';
 import { useContext, useEffect, useRef, useState } from 'react';
 import { socket } from '../../socket';
 import { AcknowledgementCallback, Message } from '@shared-types/socket';
-import './css/dashboard.styles.css';
 import { ConversationContext } from './ConversationContext';
 import { MessageBox } from './MessageBox';
 import { v7 as uuidV7 } from 'uuid';
@@ -39,7 +38,6 @@ export function ConversationViewContainer() {
     const sendMessageFieldRef = useRef<HTMLInputElement>(null);
     const messageBoxRef = useRef<HTMLDivElement>(null);
     const [messages, setMessages] = useState<Message[]>([]);
-
     const { conversationUsers, setConversationUsers } =
         useContext(ConversationContext);
 
@@ -50,13 +48,12 @@ export function ConversationViewContainer() {
         if (user) {
             setMessages(user.messages);
         }
-
         //set scroll to bottom
         if (messageBoxRef.current) {
             messageBoxRef.current.scrollTop =
                 messageBoxRef.current.scrollHeight;
         }
-    }, [conversationUsers, state?.socketId]);
+    }, [conversationUsers,messages, state?.socketId]);
 
     async function submitMessage() {
         if (sendMessageFieldRef.current) {
@@ -96,8 +93,8 @@ export function ConversationViewContainer() {
     }
 
     return (
-        <div className="conversation-view-container">
-            <div ref={messageBoxRef} className="message-box-container">
+        <div className="flex flex-col justify-between bg-gray-400 min-h-[95vh] max-h-[95vh]">
+            <div ref={messageBoxRef} className="flex flex-col justify-center max-h-[89vh] min-h-[89vh] overflow-auto ">
                 <MessageBox messages={messages} />
             </div>
             <TextField.Root

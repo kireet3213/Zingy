@@ -1,6 +1,5 @@
-import { ChatBubbleIcon, GearIcon } from '@radix-ui/react-icons';
-import { Box, Button, DropdownMenu, Tooltip } from '@radix-ui/themes';
-import { mockImageUrl } from './mockData/conversations-mock';
+import { GearIcon } from '@radix-ui/react-icons';
+import { Box, DropdownMenu } from '@radix-ui/themes';
 import { useContext } from 'react';
 import { AuthContext } from '../../AuthContext';
 import { socket } from '../../socket';
@@ -9,56 +8,13 @@ export const SideBar = () => {
     const { setAuthUser } = useContext(AuthContext);
     return (
         <Box
-            style={{
-                backgroundColor: 'var(--gray-4)',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '30px',
-                alignItems: 'center',
-            }}
+            className="flex flex-col-reverse bg-slate-200 items-center rounded-tl-2xl rounded-bl-2xl "
         >
-            <Tooltip content="Conversations(Not implemented)" side="right">
-                <ChatBubbleIcon
-                    style={{
-                        minWidth: '50px',
-                        minHeight: '30px',
-                        marginBottom: 'auto',
-                        cursor: 'pointer',
-                        marginTop: '10px',
-                    }}
-                />
-            </Tooltip>
-            <Tooltip content="Settings" side="right">
-                <GearIcon
-                    style={{
-                        minWidth: '50px',
-                        minHeight: '30px',
-                        cursor: 'pointer',
-                    }}
-                />
-            </Tooltip>
-
             <DropdownMenu.Root>
                 <DropdownMenu.Trigger>
-                    <Button
-                        style={{
-                            cursor: 'pointer',
-                            marginBottom: '10px',
-                            background: 0,
-                        }}
-                        variant="soft"
-                    >
-                        <img
-                            src={mockImageUrl}
-                            style={{
-                                width: '50px',
-                                height: '50px',
-                                borderRadius: '50%',
-                                objectFit: 'cover',
-                            }}
-                            alt="N/A"
-                        />
-                    </Button>
+                    <GearIcon
+                        className="min-w-12 min-h-7 mb-4 cursor-pointer"
+                    />
                 </DropdownMenu.Trigger>
                 <DropdownMenu.Content>
                     <DropdownMenu.Item onClick={() => null}>

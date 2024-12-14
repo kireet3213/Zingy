@@ -1,12 +1,10 @@
 /* eslint-disable no-console */
-import { Grid } from '@radix-ui/themes';
 import { useContext, useEffect } from 'react';
 import { AuthContext } from '../../AuthContext';
 import { ConversationContainer } from './ConversationContainer';
 import { Navigate, Outlet } from 'react-router-dom';
 import { SideBar } from './SideBar';
 import { socket } from '../../socket';
-import './css/dashboard.styles.css';
 import { ConversationContextProvider } from './ConversationContext';
 
 export function DashboardRoot() {
@@ -67,15 +65,15 @@ export function DashboardRoot() {
 
     return (
         <ConversationContextProvider>
-            <div className="dashboard-root">
+            <div className="p-4 bg-gray-600">
                 {!authUser ? (
                     <Navigate to="/"></Navigate>
                 ) : (
-                    <Grid columns="minmax(60px,5%) 30% 65%" gap="1">
+                    <div className="grid grid-cols-layout">
                         <SideBar />
                         <ConversationContainer />
                         <Outlet />
-                    </Grid>
+                    </div>
                 )}
             </div>
         </ConversationContextProvider>

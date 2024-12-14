@@ -6,7 +6,7 @@ export type UserConversation = {
     senderName: string;
     unseenMessageCount: number;
     profileImageUrl: string;
-    isConnected?: Maybe<boolean>;
+    isConnected: boolean;
     socketId?: Maybe<string>;
     messages: Message[];
     self: boolean;
