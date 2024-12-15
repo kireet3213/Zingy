@@ -65,7 +65,7 @@ export function DashboardRoot() {
 
     return (
         <ConversationContextProvider>
-            <div className="p-4 bg-gray-600">
+            <div className="p-4 bg-slate-600 min-h-screen">
                 {!authUser ? (
                     <Navigate to="/"></Navigate>
                 ) : (

@@ -1,29 +1,43 @@
 import { GearIcon } from '@radix-ui/react-icons';
-import { Box, DropdownMenu } from '@radix-ui/themes';
 import { useContext } from 'react';
 import { AuthContext } from '../../AuthContext';
 import { socket } from '../../socket';
+import {
+    DropdownContent,
+    DropdownItem,
+    DropdownRoot,
+    DropdownTrigger,
+} from '../../components/Dropdown.tsx';
+import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 
 export const SideBar = () => {
     const { setAuthUser } = useContext(AuthContext);
     return (
-        <Box
-            className="flex flex-col-reverse bg-slate-200 items-center rounded-tl-2xl rounded-bl-2xl "
-        >
-            <DropdownMenu.Root>
-                <DropdownMenu.Trigger>
-                    <GearIcon
-                        className="min-w-12 min-h-7 mb-4 cursor-pointer"
-                    />
-                </DropdownMenu.Trigger>
-                <DropdownMenu.Content>
-                    <DropdownMenu.Item onClick={() => null}>
+        <div className="flex flex-col-reverse bg-slate-400 items-center rounded-tl-lg rounded-bl-lg">
+            <DropdownRoot>
+                <DropdownTrigger>
+                    <span className="flex h-10 w-10 bg-slate-500 hover:bg-slate-600 items-center justify-center cursor-pointer mb-3 rounded-full">
+                        <GearIcon
+                            strokeWidth={1}
+                            className="min-w-8 min-h-6 focus:outline-none text-slate-800"
+                        />
+                    </span>
+                </DropdownTrigger>
+                <DropdownContent className="bg-slate-400 rounded p-2 flex flex-col">
+                    <DropdownItem
+                        className="cursor-pointer hover:bg-slate-500 p-2 text-slate-800 hover:outline-none rounded"
+                        onClick={() => null}
+                    >
                         Edit Profile
-                    </DropdownMenu.Item>
-                    <DropdownMenu.Item onClick={() => null}>
+                    </DropdownItem>
+                    <DropdownItem
+                        className="cursor-pointer hover:bg-slate-500 p-2 text-slate-800 hover:outline-none rounded"
+                        onClick={() => null}
+                    >
                         Change Password
-                    </DropdownMenu.Item>
-                    <DropdownMenu.Item
+                    </DropdownItem>
+                    <DropdownItem
+                        className="cursor-pointer hover:bg-slate-500 p-2 text-slate-800 hover:outline-none rounded"
                         onClick={() => {
                             localStorage.clear();
                             if (setAuthUser) setAuthUser(null);
@@ -31,9 +45,10 @@ export const SideBar = () => {
                         }}
                     >
                         Logout
-                    </DropdownMenu.Item>
-                </DropdownMenu.Content>
-            </DropdownMenu.Root>
-        </Box>
+                    </DropdownItem>
+                    <DropdownMenu.Arrow className="DropdownMenuArrow" />
+                </DropdownContent>
+            </DropdownRoot>
+        </div>
     );
 };

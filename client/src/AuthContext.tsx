@@ -4,7 +4,7 @@ import { Maybe } from './types/utility';
 
 type AuthContextProps = PropsWithChildren<{
     authUser?: Maybe<User>;
-    setAuthUser?: React.Dispatch<React.SetStateAction<Maybe<User>>>;
+    setAuthUser: React.Dispatch<React.SetStateAction<Maybe<User>>>;
 }>;
 
 export const AuthContext = createContext<AuthContextProps>({

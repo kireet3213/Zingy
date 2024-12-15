@@ -1,11 +1,10 @@
-import { Container, Heading, Text } from '@radix-ui/themes';
 import { useRouteError } from 'react-router-dom';
 
 export default function ErrorPage() {
     const error = useRouteError() as { statusText?: string; message?: string };
 
     return (
-        <Container
+        <div
             id="error-page"
             style={{
                 position: 'absolute',
@@ -14,13 +13,9 @@ export default function ErrorPage() {
                 transform: 'translate(-50%,50%)',
             }}
         >
-            <Heading size="8">Oops!</Heading>
-            <Text size="7" as="p" mb="6">
-                Sorry, an unexpected error has occurred.
-            </Text>
-            <Text style={{ textAlign: 'center' }} size="7" as="p">
-                {error.statusText || error.message}
-            </Text>
-        </Container>
+            <h2>Oops!</h2>
+            <p className="mb-3">Sorry, an unexpected error has occurred.</p>
+            <p className="text-center">{error.statusText || error.message}</p>
+        </div>
     );
 }
