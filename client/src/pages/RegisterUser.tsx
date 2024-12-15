@@ -1,30 +1,30 @@
 import * as Form from '@radix-ui/react-form';
-import { InfoCircledIcon } from '@radix-ui/react-icons';
-import {
-    Card,
-    Container,
-    Button,
-    Tooltip,
-    TextField,
-    Link as RadixLink,
-    Callout,
-    Text,
-} from '@radix-ui/themes';
 import { useNavigate } from 'react-router-dom';
 import { post } from '../helpers/axios-client';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Maybe } from '../types/utility.ts';
 import type { AxiosResponse } from 'axios';
+import { FormErrorValidation } from '../components/FormErrorValidation.tsx';
+import { ErrorValidation } from '../components/ErrorValidation.tsx';
+import logo from '../assets/DALL·E Letter Z Design.webp';
 
 export const RegisterUser = () => {
     const navigate = useNavigate();
     const [status, setStatus] = useState<boolean>(false);
     const [error, setError] = useState<Maybe<string>>(null);
+    const formRef = useRef<HTMLFormElement>(null);
 
     return (
-        <Container size="1" mt="9">
-            <Card variant="classic" size="5" style={{ position: 'relative' }}>
+        <div className="bg-slate-800 min-h-screen content-center">
+            <img
+                className="rounded-full mx-auto max-w-24 mb-14 cursor-none"
+                src={logo}
+                alt="Zingy"
+            />
+            <div className="flex flex-col gap-5 justify-center items-center max-w-80 min-h-96 mx-auto  bg-slate-600 rounded-md">
                 <Form.Root
+                    ref={formRef}
+                    className="flex flex-col items-center justify-center gap-5"
                     onSubmit={async (e) => {
                         e.preventDefault();
                         setError(null);
@@ -45,6 +45,9 @@ export const RegisterUser = () => {
                         if (response) {
                             setStatus(!!response.data.data);
                         }
+                        if (formRef.current) {
+                            formRef.current.reset();
+                        }
                     }}
                 >
                     <Form.Field name="username">
@@ -53,32 +56,19 @@ export const RegisterUser = () => {
                                 return (
                                     <>
                                         <Form.Control asChild>
-                                            <TextField.Root
-                                                size="3"
-                                                variant="soft"
-                                                radius="large"
+                                            <input
+                                                className="rounded p-2 bg-slate-200"
                                                 placeholder="Enter your username"
-                                                mb="3"
-                                                color={
-                                                    validity?.valid !== false
-                                                        ? 'indigo'
-                                                        : 'red'
-                                                }
                                                 required
                                                 type="text"
-                                            >
-                                                {validity?.valid === false ? (
-                                                    <Tooltip content="Invalid Input">
-                                                        <TextField.Slot
-                                                            side="right"
-                                                            color="red"
-                                                        >
-                                                            <InfoCircledIcon />
-                                                        </TextField.Slot>
-                                                    </Tooltip>
-                                                ) : null}
-                                            </TextField.Root>
+                                            />
                                         </Form.Control>
+                                        {(validity?.valid === false ||
+                                            !!error) && (
+                                            <FormErrorValidation
+                                                state={validity}
+                                            />
+                                        )}
                                     </>
                                 );
                             }}
@@ -90,32 +80,19 @@ export const RegisterUser = () => {
                                 return (
                                     <>
                                         <Form.Control asChild>
-                                            <TextField.Root
-                                                size="3"
-                                                variant="soft"
-                                                radius="large"
+                                            <input
+                                                className="rounded p-2 bg-slate-200"
                                                 placeholder="Enter your email"
-                                                mb="3"
-                                                color={
-                                                    validity?.valid !== false
-                                                        ? 'indigo'
-                                                        : 'red'
-                                                }
                                                 required
                                                 type="email"
-                                            >
-                                                {validity?.valid === false ? (
-                                                    <Tooltip content="Invalid Input">
-                                                        <TextField.Slot
-                                                            side="right"
-                                                            color="red"
-                                                        >
-                                                            <InfoCircledIcon />
-                                                        </TextField.Slot>
-                                                    </Tooltip>
-                                                ) : null}
-                                            </TextField.Root>
+                                            />
                                         </Form.Control>
+                                        {(validity?.valid === false ||
+                                            error) && (
+                                            <FormErrorValidation
+                                                state={validity}
+                                            />
+                                        )}
                                     </>
                                 );
                             }}
@@ -127,32 +104,19 @@ export const RegisterUser = () => {
                                 return (
                                     <>
                                         <Form.Control asChild>
-                                            <TextField.Root
-                                                size="3"
-                                                radius="large"
+                                            <input
+                                                className="rounded p-2 bg-slate-200"
                                                 placeholder="Enter your password"
-                                                mb="3"
-                                                variant="soft"
-                                                color={
-                                                    validity?.valid !== false
-                                                        ? 'indigo'
-                                                        : 'red'
-                                                }
                                                 required
                                                 type="password"
-                                            >
-                                                {validity?.valid === false ? (
-                                                    <Tooltip content="Invalid Input">
-                                                        <TextField.Slot
-                                                            side="right"
-                                                            color="red"
-                                                        >
-                                                            <InfoCircledIcon />
-                                                        </TextField.Slot>
-                                                    </Tooltip>
-                                                ) : null}
-                                            </TextField.Root>
+                                            />
                                         </Form.Control>
+                                        {(validity?.valid === false ||
+                                            error) && (
+                                            <FormErrorValidation
+                                                state={validity}
+                                            />
+                                        )}
                                     </>
                                 );
                             }}
@@ -160,51 +124,40 @@ export const RegisterUser = () => {
                     </Form.Field>
 
                     <Form.Submit asChild>
-                        <Button
-                            radius="large"
-                            size="4"
-                            variant="surface"
+                        <button
+                            className="rounded-lg mb-3 w-1/2 p-2 bg-slate-300 hover:bg-slate-400"
                             type="submit"
-                            mb="3"
                             style={{ width: '100%' }}
                         >
                             Register
-                        </Button>
+                        </button>
                     </Form.Submit>
-                    {error && (
-                        <Text
-                            as="p"
-                            style={{ textAlign: 'center' }}
-                            weight="medium"
-                            mt="1"
-                            size="2"
-                            trim="both"
-                            color="red"
-                        >
-                            {error}
-                        </Text>
-                    )}
+                    {error && <ErrorValidation error={error} />}
                 </Form.Root>
                 {status && (
-                    <Callout.Root color="green">
-                        <Callout.Icon>
-                            <InfoCircledIcon />
-                        </Callout.Icon>
-                        <Callout.Text>
-                            Registration Successful.{' '}
-                            <RadixLink
-                                style={{
-                                    cursor: 'pointer',
-                                    textDecoration: 'underline',
-                                }}
-                                onClick={() => navigate({ pathname: '/' })}
-                            >
-                                Login Now
-                            </RadixLink>
-                        </Callout.Text>
-                    </Callout.Root>
+                    <p className="text-green-600 bg-green-200 p-3 outline-2 outline-green-600 rounded opacity-90">
+                        <span>Registration Successful. </span>
+                        <span
+                            className="cursor-pointer underline"
+                            onClick={() => {
+                                navigate({
+                                    pathname: '/',
+                                });
+                            }}
+                        >
+                            Login Now
+                        </span>
+                    </p>
                 )}
-            </Card>
-        </Container>
+                <p
+                    className="self-end mr-1 content-end underline text-slate-800 cursor-pointer"
+                    onClick={() => {
+                        navigate(-1);
+                    }}
+                >
+                    Go Back
+                </p>
+            </div>
+        </div>
     );
 };

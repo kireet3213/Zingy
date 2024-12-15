@@ -1,11 +1,12 @@
 import { forwardRef } from 'react';
 import { Maybe } from '../../types/utility';
-import './css/message-container.styles.css';
 import { Message } from '@shared-types/socket.ts';
+import clsx from 'clsx';
 
 type MessageBoxProps = {
     messages: Maybe<Message[]>;
 };
+
 function getTime(date: string): Maybe<string> {
     if (!date) return null;
     const parts = date.split(' ')[4];
@@ -14,6 +15,7 @@ function getTime(date: string): Maybe<string> {
     const minutes = hourAndMinutes[1];
     return `${hour}:${minutes}`;
 }
+
 export const MessageBox = forwardRef<HTMLDivElement, MessageBoxProps>(
     function MessageBox(props, ref) {
         const { messages } = props;
@@ -21,26 +23,23 @@ export const MessageBox = forwardRef<HTMLDivElement, MessageBoxProps>(
         return (
             <div
                 ref={ref}
-                style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '20px',
-                    padding: '10px',
-                    flex: 1,
-                    justifyContent: 'end',
-                }}
+                className="flex flex-col gap-5 p-2.5 flex-1 justify-end text-slate-600"
             >
                 {messages?.map((message) => (
                     <span
                         key={message.id}
-                        className={`message-box ${message.fromSelf ? 'current-user-message' : ''}`}
+                        className={clsx(
+                            'bg-slate-100 max-w-[50%] min-w-24 rounded-md hyphens-auto p-2 relative self-end',
+                            message.fromSelf && 'self-start bg-slate-200 '
+                        )}
                     >
-                        <span>
-                            {message.text ??
-                                `There are forces at work that Lorem ipsum dolor, sit amet`}
-                        </span>
-                        <img className="sent-icon" src="/sent.svg" alt="" />
-                        <span className="message-time">
+                        <span>{message.text}</span>
+                        <img
+                            className="absolute w-4 h-4 bottom-0 right-0"
+                            src="/sent.svg"
+                            alt="Sent Icon"
+                        />
+                        <span className="text-[0.6rem] font-extralight block text-end -mb-1.5 mx-2">
                             {`${getTime(message.updatedAt)}`}
                         </span>
                     </span>

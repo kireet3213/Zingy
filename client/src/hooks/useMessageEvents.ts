@@ -9,7 +9,7 @@ import { useParams } from 'react-router-dom';
 export const useMessageEvents = () => {
     const { setConversationUsers } = useContext(ConversationContext);
     const { authUser } = useContext(AuthContext);
-    const params = useParams<{ conversation_id: string }>();
+    const { conversation_id } = useParams<{ conversation_id: string }>();
 
     useEffect(() => {
         const handlePrivateMessage = (payload: {
@@ -28,7 +28,7 @@ export const useMessageEvents = () => {
                         userConversation.messages.push(message);
                     }
                     if (
-                        params.conversation_id !== payload.from &&
+                        conversation_id !== payload.from &&
                         user.socketId === payload.from
                     ) {
                         userConversation.unseenMessageCount++;
@@ -43,5 +43,5 @@ export const useMessageEvents = () => {
         return () => {
             socket.off('private-message', handlePrivateMessage);
         };
-    }, [authUser?.id, setConversationUsers, params.conversation_id]);
+    }, [authUser?.id, setConversationUsers, conversation_id]);
 };

@@ -1,73 +1,43 @@
-import { ChatBubbleIcon, GearIcon } from '@radix-ui/react-icons';
-import { Box, Button, DropdownMenu, Tooltip } from '@radix-ui/themes';
-import { mockImageUrl } from './mockData/conversations-mock';
+import { GearIcon } from '@radix-ui/react-icons';
 import { useContext } from 'react';
 import { AuthContext } from '../../AuthContext';
 import { socket } from '../../socket';
+import {
+    DropdownContent,
+    DropdownItem,
+    DropdownRoot,
+    DropdownTrigger,
+} from '../../components/Dropdown.tsx';
+import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 
 export const SideBar = () => {
     const { setAuthUser } = useContext(AuthContext);
     return (
-        <Box
-            style={{
-                backgroundColor: 'var(--gray-4)',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '30px',
-                alignItems: 'center',
-            }}
-        >
-            <Tooltip content="Conversations(Not implemented)" side="right">
-                <ChatBubbleIcon
-                    style={{
-                        minWidth: '50px',
-                        minHeight: '30px',
-                        marginBottom: 'auto',
-                        cursor: 'pointer',
-                        marginTop: '10px',
-                    }}
-                />
-            </Tooltip>
-            <Tooltip content="Settings" side="right">
-                <GearIcon
-                    style={{
-                        minWidth: '50px',
-                        minHeight: '30px',
-                        cursor: 'pointer',
-                    }}
-                />
-            </Tooltip>
-
-            <DropdownMenu.Root>
-                <DropdownMenu.Trigger>
-                    <Button
-                        style={{
-                            cursor: 'pointer',
-                            marginBottom: '10px',
-                            background: 0,
-                        }}
-                        variant="soft"
-                    >
-                        <img
-                            src={mockImageUrl}
-                            style={{
-                                width: '50px',
-                                height: '50px',
-                                borderRadius: '50%',
-                                objectFit: 'cover',
-                            }}
-                            alt="N/A"
+        <div className="flex flex-col-reverse bg-slate-400 items-center rounded-tl-lg rounded-bl-lg">
+            <DropdownRoot>
+                <DropdownTrigger>
+                    <span className="flex h-10 w-10 bg-slate-500 hover:bg-slate-600 items-center justify-center cursor-pointer mb-3 rounded-full">
+                        <GearIcon
+                            strokeWidth={1}
+                            className="min-w-8 min-h-6 focus:outline-none text-slate-800"
                         />
-                    </Button>
-                </DropdownMenu.Trigger>
-                <DropdownMenu.Content>
-                    <DropdownMenu.Item onClick={() => null}>
+                    </span>
+                </DropdownTrigger>
+                <DropdownContent className="bg-slate-400 rounded p-2 flex flex-col">
+                    <DropdownItem
+                        className="cursor-pointer hover:bg-slate-500 p-2 text-slate-800 hover:outline-none rounded"
+                        onClick={() => null}
+                    >
                         Edit Profile
-                    </DropdownMenu.Item>
-                    <DropdownMenu.Item onClick={() => null}>
+                    </DropdownItem>
+                    <DropdownItem
+                        className="cursor-pointer hover:bg-slate-500 p-2 text-slate-800 hover:outline-none rounded"
+                        onClick={() => null}
+                    >
                         Change Password
-                    </DropdownMenu.Item>
-                    <DropdownMenu.Item
+                    </DropdownItem>
+                    <DropdownItem
+                        className="cursor-pointer hover:bg-slate-500 p-2 text-slate-800 hover:outline-none rounded"
                         onClick={() => {
                             localStorage.clear();
                             if (setAuthUser) setAuthUser(null);
@@ -75,9 +45,10 @@ export const SideBar = () => {
                         }}
                     >
                         Logout
-                    </DropdownMenu.Item>
-                </DropdownMenu.Content>
-            </DropdownMenu.Root>
-        </Box>
+                    </DropdownItem>
+                    <DropdownMenu.Arrow className="DropdownMenuArrow" />
+                </DropdownContent>
+            </DropdownRoot>
+        </div>
     );
 };

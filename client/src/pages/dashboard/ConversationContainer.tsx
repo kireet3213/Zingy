@@ -8,7 +8,7 @@ export function ConversationContainer() {
     const { conversationUsers } = useContext(ConversationContext);
     useUserEvents();
     return (
-        <div className="conversation-container">
+        <div className=" flex flex-col bg-slate-500 overflow-auto overflow-x-hidden h-[100vh] lg:h-[95vh]">
             <ConversationBox conversationUsers={conversationUsers} />
         </div>
     );

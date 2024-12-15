@@ -1,55 +1,40 @@
-import {
-    Avatar,
-    Box,
-    Button,
-    Callout,
-    Card,
-    Container,
-    Link as RadixLink,
-    Text,
-    TextField,
-    Tooltip,
-} from '@radix-ui/themes';
 import * as Form from '@radix-ui/react-form';
 import { InfoCircledIcon } from '@radix-ui/react-icons';
 import { post } from '../helpers/axios-client';
 import { Navigate, useNavigate } from 'react-router-dom';
-import { useContext, useState } from 'react';
+import { useContext, useRef, useState } from 'react';
 import { AuthContext } from '../AuthContext';
 import { Maybe } from '../types/utility.ts';
 import { User } from '@shared-types/socket.ts';
 import type { AxiosResponse } from 'axios';
+import logo from '../assets/DALL·E Letter Z Design.webp';
+import { FormErrorValidation } from '../components/FormErrorValidation.tsx';
+import { ErrorValidation } from '../components/ErrorValidation.tsx';
 
 export const LoginPage = () => {
     const navigate = useNavigate();
     const { authUser, setAuthUser } = useContext(AuthContext);
     const [status, setStatus] = useState<boolean>(false);
     const [error, setError] = useState<Maybe<string>>(null);
-    if (!setAuthUser) return;
+    const formRef = useRef<HTMLFormElement>(null);
     return (
         <>
             {authUser ? (
                 <Navigate to="/" />
             ) : (
-                <Container size="1" mt="9">
-                    <Card
-                        variant="classic"
-                        size="5"
-                        style={{ position: 'relative' }}
-                    >
-                        <Avatar
-                            src="https://cdna.artstation.com/p/assets/images/images/073/539/612/large/michele-marchionni-kratos.jpg?1709889910"
-                            size="8"
-                            fallback="A"
-                            radius="full"
-                            style={{
-                                marginLeft: 'auto',
-                                marginRight: 'auto',
-                                display: 'block',
-                            }}
-                            mb="3"
-                        />
+                <div className=" bg-slate-800 min-h-screen">
+                    <h2 className="text-7xl text-center text-slate-200 mb-14">
+                        Welcome To Zingy
+                    </h2>
+                    <img
+                        className="rounded-full mx-auto max-w-24 mb-14 cursor-none"
+                        src={logo}
+                        alt="Zingy"
+                    />
+                    <div className="flex flex-col justify-center items-center max-w-96  min-h-96 mx-auto bg-slate-600 rounded-md">
                         <Form.Root
+                            ref={formRef}
+                            className="flex flex-col items-center justify-center gap-5"
                             autoComplete="on"
                             onSubmit={async (e) => {
                                 e.preventDefault();
@@ -62,12 +47,17 @@ export const LoginPage = () => {
                                         secret: string;
                                         success: boolean;
                                     }>
-                                > = await post('auth/login', postData).catch(
-                                    (error) => {
+                                > = await post('auth/login', postData)
+                                    .catch((error) => {
                                         setError(error.message);
+                                        e.currentTarget.reset();
                                         return null;
-                                    }
-                                );
+                                    })
+                                    .finally(() => {
+                                        if (formRef.current) {
+                                            formRef.current.reset();
+                                        }
+                                    });
                                 if (!response) return;
                                 setStatus(response.data.success);
                                 localStorage.setItem(
@@ -88,140 +78,77 @@ export const LoginPage = () => {
                                         return (
                                             <>
                                                 <Form.Control asChild>
-                                                    <TextField.Root
-                                                        style={{
-                                                            flexGrow: '1',
-                                                        }}
-                                                        size="3"
-                                                        variant="soft"
-                                                        radius="large"
+                                                    <input
+                                                        className="rounded p-2 bg-slate-200 focus:outline-none min-w-[300px]"
                                                         placeholder="Enter your email"
-                                                        mb="3"
-                                                        color={
-                                                            validity?.valid !==
-                                                            false
-                                                                ? 'indigo'
-                                                                : 'red'
-                                                        }
                                                         required
                                                         type="email"
-                                                    >
-                                                        {validity?.valid ===
-                                                        false ? (
-                                                            <Tooltip content="Invalid Input">
-                                                                <TextField.Slot
-                                                                    side="right"
-                                                                    color="red"
-                                                                >
-                                                                    <InfoCircledIcon />
-                                                                </TextField.Slot>
-                                                            </Tooltip>
-                                                        ) : null}
-                                                    </TextField.Root>
+                                                    />
                                                 </Form.Control>
+                                                {(validity?.valid === false ||
+                                                    !!error) && (
+                                                    <FormErrorValidation
+                                                        state={validity}
+                                                    />
+                                                )}
                                             </>
                                         );
                                     }}
                                 </Form.ValidityState>
                             </Form.Field>
-                            <Box style={{ textAlign: 'end' }} mb="3">
-                                <RadixLink href="#">Forgot Password?</RadixLink>
-                            </Box>
                             <Form.Field name="password">
                                 <Form.ValidityState>
                                     {(validity) => {
                                         return (
                                             <>
                                                 <Form.Control asChild>
-                                                    <TextField.Root
-                                                        size="3"
-                                                        radius="large"
+                                                    <input
+                                                        className="rounded p-2 bg-slate-200 focus:outline-none min-w-[300px]"
                                                         placeholder="Enter your password"
-                                                        mb="3"
-                                                        variant="soft"
-                                                        color={
-                                                            validity?.valid !==
-                                                            false
-                                                                ? 'indigo'
-                                                                : 'red'
-                                                        }
                                                         required
                                                         type="password"
-                                                    >
-                                                        {validity?.valid ===
-                                                        false ? (
-                                                            <Tooltip content="Invalid Input">
-                                                                <TextField.Slot
-                                                                    side="right"
-                                                                    color="red"
-                                                                >
-                                                                    <InfoCircledIcon />
-                                                                </TextField.Slot>
-                                                            </Tooltip>
-                                                        ) : null}
-                                                    </TextField.Root>
+                                                    />
                                                 </Form.Control>
+                                                {(validity?.valid === false ||
+                                                    !!error) && (
+                                                    <FormErrorValidation
+                                                        state={validity}
+                                                    />
+                                                )}
                                             </>
                                         );
                                     }}
                                 </Form.ValidityState>
                             </Form.Field>
                             <Form.Submit asChild>
-                                <Button
-                                    radius="large"
-                                    size="4"
-                                    variant="surface"
+                                <button
+                                    className="rounded-lg mb-3 w-1/2 p-2 bg-slate-300 hover:bg-slate-400"
                                     type="submit"
-                                    mb="3"
-                                    style={{ width: '100%' }}
                                 >
                                     Login
-                                </Button>
+                                </button>
                             </Form.Submit>
-                            {error && (
-                                <Text
-                                    as="p"
-                                    style={{ textAlign: 'center' }}
-                                    weight="medium"
-                                    mt="1"
-                                    size="2"
-                                    trim="both"
-                                    color="red"
-                                >
-                                    {error}
-                                </Text>
-                            )}
-                            <Text
-                                as="div"
-                                style={{
-                                    textAlign: 'end',
-                                    position: 'absolute',
-                                    bottom: '10px',
-                                    right: '50px',
-                                }}
-                            >
+                            {error && <ErrorValidation error={error} />}
+                            <div className="items-end text-slate-900">
                                 New User?{' '}
-                                <RadixLink
-                                    underline="hover"
-                                    style={{ cursor: 'pointer' }}
+                                <a
+                                    className="cursor-pointer underline"
                                     onClick={() =>
                                         navigate({ pathname: '/register' })
                                     }
                                 >
                                     Register Now
-                                </RadixLink>
-                            </Text>
+                                </a>
+                            </div>
                         </Form.Root>
-                        {status && (
-                            <Callout.Root color="green">
-                                <Callout.Icon>
-                                    <InfoCircledIcon />
-                                </Callout.Icon>
-                                <Callout.Text>Login Successful.</Callout.Text>
-                            </Callout.Root>
-                        )}
-                    </Card>
-                </Container>
+                    </div>
+                    {status && (
+                        <p>
+                            <InfoCircledIcon />
+                            Login Successful
+                        </p>
+                    )}
+                </div>
             )}
         </>
     );
