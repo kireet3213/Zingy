@@ -9,7 +9,7 @@ export const FormErrorValidation = ({
 }) => {
     return (
         <Form.Message>
-            <p className="text-red-600 text-xs font-light max-w-36">
+            <p className="text-red-600 font-bold text-xs max-w-56 hyphens-auto m-0.5">
                 {setValidationMessage(state)}
             </p>
         </Form.Message>

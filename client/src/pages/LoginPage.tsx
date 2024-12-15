@@ -31,7 +31,7 @@ export const LoginPage = () => {
                         src={logo}
                         alt="Zingy"
                     />
-                    <div className="flex flex-col justify-center items-center max-w-80 min-h-96 mx-auto  bg-slate-600 rounded-md">
+                    <div className="flex flex-col justify-center items-center max-w-96  min-h-96 mx-auto bg-slate-600 rounded-md">
                         <Form.Root
                             ref={formRef}
                             className="flex flex-col items-center justify-center gap-5"
@@ -79,7 +79,7 @@ export const LoginPage = () => {
                                             <>
                                                 <Form.Control asChild>
                                                     <input
-                                                        className="rounded p-2 bg-slate-200"
+                                                        className="rounded p-2 bg-slate-200 focus:outline-none min-w-[300px]"
                                                         placeholder="Enter your email"
                                                         required
                                                         type="email"
@@ -103,7 +103,7 @@ export const LoginPage = () => {
                                             <>
                                                 <Form.Control asChild>
                                                     <input
-                                                        className="rounded p-2 bg-slate-200"
+                                                        className="rounded p-2 bg-slate-200 focus:outline-none min-w-[300px]"
                                                         placeholder="Enter your password"
                                                         required
                                                         type="password"
