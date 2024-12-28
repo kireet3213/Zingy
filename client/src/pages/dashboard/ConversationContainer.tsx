@@ -2,7 +2,7 @@ import { useContext } from 'react';
 import { ConversationBox } from './ConversationBox';
 import { ConversationContext } from './ConversationContext';
 import { useUserEvents } from '../../hooks/useUserEvents.ts';
-import SearchBox from './search-box/SearchBox.tsx';
+import Popover from './search-box/Popover.tsx';
 
 export function ConversationContainer() {
     //TODO: for search bar functionality
@@ -10,7 +10,7 @@ export function ConversationContainer() {
     useUserEvents();
     return (
         <div className="flex flex-col bg-slate-500 overflow-auto overflow-x-hidden h-[100vh] lg:h-[95vh]">
-            <SearchBox />
+            <Popover />
             <ConversationBox conversationUsers={conversationUsers} />
         </div>
     );
