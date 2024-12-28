@@ -17,7 +17,6 @@ export const LoginPage = () => {
     const [status, setStatus] = useState<boolean>(false);
     const [error, setError] = useState<Maybe<string>>(null);
     const formRef = useRef<HTMLFormElement>(null);
-    console.log(authUser);
     return (
         <>
             {authUser ? (
