@@ -6,6 +6,7 @@ import * as express from 'express';
 import { catchAsync } from '../../helper/async-promise-handler';
 import { Op } from 'sequelize';
 import { UserProfile } from '../../database/models/userProfile.model';
+import { SearchUsersDto } from './validation-dtos/search-users.dto';
 
 export const registerUser: RequestHandler = catchAsync(
     async (req: express.Request, res: express.Response) => {
@@ -24,23 +25,25 @@ export const registerUser: RequestHandler = catchAsync(
 
 export const searchUsers: RequestHandler = catchAsync(
     async (req: express.Request, res: express.Response) => {
-        const keyword = req.query.keyword || '';
-        const page =
-            (typeof req.query.page === 'string' &&
-                !!req.query.page &&
-                Number.parseInt(req.query.page)) ||
-            1;
-        const perPage =
-            (typeof req.query.perPage === 'string' &&
-                !!req.query.perPage &&
-                Number.parseInt(req.query.perPage)) ||
+        const { keyword, page, perPage } = req.query;
+        const validateParams = new SearchUsersDto();
+        validateParams.page = page as string;
+        validateParams.perPage = perPage as string;
+        validateParams.keyword = keyword as string;
+        await validateOrRejectSchema(validateParams);
+        const offsetPage =
+            (typeof page === 'string' && !!page && Number.parseInt(page)) || 1;
+        const limit =
+            (typeof perPage === 'string' &&
+                !!perPage &&
+                Number.parseInt(perPage)) ||
             20;
         const users = await User.scope([
             'defaultScope',
             'withoutPassword',
         ]).findAll({
-            limit: perPage,
-            offset: perPage * (page - 1),
+            limit,
+            offset: limit * (offsetPage - 1),
             where: {
                 username: {
                     [Op.like]: `%${keyword}%`,

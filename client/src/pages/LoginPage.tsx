@@ -17,10 +17,11 @@ export const LoginPage = () => {
     const [status, setStatus] = useState<boolean>(false);
     const [error, setError] = useState<Maybe<string>>(null);
     const formRef = useRef<HTMLFormElement>(null);
+    console.log(authUser);
     return (
         <>
             {authUser ? (
-                <Navigate to="/" />
+                <Navigate to="/dashboard" />
             ) : (
                 <div className=" bg-slate-800 min-h-screen">
                     <h2 className="text-7xl text-center text-slate-200 mb-14">

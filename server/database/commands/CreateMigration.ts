@@ -43,8 +43,8 @@ if (
 const fileName = fileNameArg.split('=')[1];
 
 const migrationsDir = resolve(__dirname, '..', 'migrations');
-function createMigration() {
-    appendFile(
+async function createMigration() {
+    await appendFile(
         `${join(migrationsDir, `${Date.now()}_${fileName}.ts`)}`,
         migrationContent
     );
