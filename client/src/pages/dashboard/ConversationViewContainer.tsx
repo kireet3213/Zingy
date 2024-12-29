@@ -99,34 +99,36 @@ export function ConversationViewContainer() {
             >
                 <MessageBox messages={messages} />
             </div>
-            <textarea
-                className="rounded-lg border-2 mb-1 resize-none p-1 text-left content-center m-1 focus:outline-none"
-                ref={sendMessageFieldRef}
-                placeholder="Send message…"
-                onChange={(e) => {
-                    setCurrentMessage(e.currentTarget.value);
-                }}
-                defaultValue={undefined}
-                onKeyDown={(e) => {
-                    if (e.key === 'Enter' && e.shiftKey) return;
-                    if (e.key === 'Enter') {
-                        submitMessage();
-                    }
-                }}
-            />
-            <button
-                className="bg-slate-300 w-10 h-10 absolute right-2.5 bottom-2.5 rounded-full flex items-center justify-center hover:bg-slate-400"
-                onClick={submitMessage}
-            >
-                <PaperPlaneIcon
-                    color=" #fbbf24"
-                    stroke="currentColor"
-                    strokeWidth={1}
-                    fill="red"
-                    className="cursor-pointer text-slate-800"
-                    cursor="pointer"
+            <div className="relative mx-1 -mb-1">
+                <textarea
+                    className="rounded-lg w-full border-2 focus:border-slate-500 resize-none content-center focus:outline-none pl-2 pr-14 max-h-[5vh] min-h-[30px] break-all"
+                    ref={sendMessageFieldRef}
+                    placeholder="Send message…"
+                    onChange={(e) => {
+                        setCurrentMessage(e.currentTarget.value);
+                    }}
+                    defaultValue={undefined}
+                    onKeyDown={(e) => {
+                        if (e.key === 'Enter' && e.shiftKey) return;
+                        if (e.key === 'Enter') {
+                            submitMessage();
+                        }
+                    }}
                 />
-            </button>
+                <button
+                    className="bg-slate-300 min-w-8 min-h-[60%] max-h-[10%] max-w-[2%] absolute right-2 bottom-3.5 -translate-1/2 rounded-full flex items-center justify-center hover:bg-slate-400"
+                    onClick={submitMessage}
+                >
+                    <PaperPlaneIcon
+                        color=" #fbbf24"
+                        stroke="currentColor"
+                        strokeWidth={1}
+                        fill="red"
+                        className="cursor-pointer text-slate-800"
+                        cursor="pointer"
+                    />
+                </button>
+            </div>
         </div>
     );
 }
