@@ -5,6 +5,7 @@ import { socket } from '../../socket';
 import {
     DropdownContent,
     DropdownItem,
+    DropdownPortal,
     DropdownRoot,
     DropdownTrigger,
 } from '../../components/Dropdown.tsx';
@@ -23,31 +24,38 @@ export const SideBar = () => {
                         />
                     </span>
                 </DropdownTrigger>
-                <DropdownContent className="bg-slate-400 rounded p-2 flex flex-col">
-                    <DropdownItem
-                        className="cursor-pointer hover:bg-slate-500 p-2 text-slate-800 hover:outline-none rounded"
-                        onClick={() => null}
+                <DropdownPortal>
+                    <DropdownContent
+                        side="right"
+                        align="end"
+                        sideOffset={10}
+                        className="bg-slate-400 rounded p-2 flex flex-col shadow-lg"
                     >
-                        Edit Profile
-                    </DropdownItem>
-                    <DropdownItem
-                        className="cursor-pointer hover:bg-slate-500 p-2 text-slate-800 hover:outline-none rounded"
-                        onClick={() => null}
-                    >
-                        Change Password
-                    </DropdownItem>
-                    <DropdownItem
-                        className="cursor-pointer hover:bg-slate-500 p-2 text-slate-800 hover:outline-none rounded"
-                        onClick={() => {
-                            localStorage.clear();
-                            if (setAuthUser) setAuthUser(null);
-                            socket.close();
-                        }}
-                    >
-                        Logout
-                    </DropdownItem>
-                    <DropdownMenu.Arrow className="DropdownMenuArrow" />
-                </DropdownContent>
+                        <DropdownItem
+                            className="cursor-pointer hover:bg-slate-500 p-2 text-slate-800 hover:outline-none rounded"
+                            onClick={() => null}
+                        >
+                            Edit Profile
+                        </DropdownItem>
+                        <DropdownItem
+                            className="cursor-pointer hover:bg-slate-500 p-2 text-slate-800 hover:outline-none rounded"
+                            onClick={() => null}
+                        >
+                            Change Password
+                        </DropdownItem>
+                        <DropdownItem
+                            className="cursor-pointer hover:bg-slate-500 p-2 text-slate-800 hover:outline-none rounded"
+                            onClick={() => {
+                                localStorage.clear();
+                                if (setAuthUser) setAuthUser(null);
+                                socket.close();
+                            }}
+                        >
+                            Logout
+                        </DropdownItem>
+                        <DropdownMenu.Arrow className="fill-slate-400" />
+                    </DropdownContent>
+                </DropdownPortal>
             </DropdownRoot>
         </div>
     );

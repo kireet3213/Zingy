@@ -1,7 +1,6 @@
 import { Router } from 'express';
 import { searchUsers, registerUser } from '../../controllers/user';
 import { verifyToken } from '../../middleware/verification.middleware';
-registerUser;
 
 const userRoutes = Router();
 

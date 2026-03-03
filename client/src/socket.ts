@@ -5,8 +5,7 @@ import {
 } from '../../shared-types/socket';
 
 // "undefined" means the URL will be computed from the `window.location` object
-const URL =
-    process.env.NODE_ENV === 'production' ? '' : import.meta.env.VITE_API_URL;
+const URL = import.meta.env.PROD ? '' : import.meta.env.VITE_API_URL;
 
 export const socket: Socket<ServerToClientEvents, ClientToServerEvents> = io(
     URL,

@@ -45,6 +45,7 @@ export function ConversationViewContainer() {
             (user) => user.socketId === state?.socketId
         );
         if (user) {
+            //eslint-disable-next-line
             setMessages(user.messages);
         }
         //set scroll to bottom
@@ -92,10 +93,10 @@ export function ConversationViewContainer() {
     }
 
     return (
-        <div className="relative flex flex-col justify-between bg-slate-400 min-h-[95vh] max-h-[95vh] rounded-tr-lg rounded-br-lg">
+        <div className="relative flex h-full min-h-0 flex-col bg-slate-400 rounded-tr-lg rounded-br-lg">
             <div
                 ref={messageBoxRef}
-                className="flex flex-col justify-center max-h-[89vh] min-h-[89vh] overflow-auto "
+                className="flex flex-1 min-h-0 flex-col justify-center overflow-auto"
             >
                 <MessageBox messages={messages} />
             </div>
