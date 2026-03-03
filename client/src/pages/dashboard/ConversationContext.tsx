@@ -1,4 +1,4 @@
-import { createContext, PropsWithChildren, useState } from 'react';
+import { createContext, PropsWithChildren } from 'react';
 import { UserConversation } from './types/conversation';
 
 type ConversationContextProps = PropsWithChildren<{
@@ -12,22 +12,3 @@ export const ConversationContext = createContext<ConversationContextProps>({
     conversationUsers: [],
     setConversationUsers: () => {},
 });
-
-export const ConversationContextProvider = ({
-    children,
-}: PropsWithChildren) => {
-    const [conversationUsers, setConversationUsers] = useState<
-        UserConversation[]
-    >([]);
-
-    return (
-        <ConversationContext.Provider
-            value={{
-                conversationUsers,
-                setConversationUsers,
-            }}
-        >
-            {children}
-        </ConversationContext.Provider>
-    );
-};

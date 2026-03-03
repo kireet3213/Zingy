@@ -1,8 +1,8 @@
 import * as Form from '@radix-ui/react-form';
 import { InfoCircledIcon } from '@radix-ui/react-icons';
 import { post } from '../helpers/axios-client';
-import { Navigate, useNavigate } from 'react-router-dom';
-import { useContext, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useContext, useEffect, useRef, useState } from 'react';
 import { AuthContext } from '../AuthContext';
 import { Maybe } from '../types/utility.ts';
 import { User } from '@shared-types/socket.ts';
@@ -17,11 +17,16 @@ export const LoginPage = () => {
     const [status, setStatus] = useState<boolean>(false);
     const [error, setError] = useState<Maybe<string>>(null);
     const formRef = useRef<HTMLFormElement>(null);
+
+    useEffect(() => {
+        if (authUser) {
+            navigate('/dashboard');
+        }
+    }, [authUser, navigate]);
+
     return (
         <>
-            {authUser ? (
-                <Navigate to="/" />
-            ) : (
+            {
                 <div className=" bg-slate-800 min-h-screen">
                     <h2 className="text-7xl text-center text-slate-200 mb-14">
                         Welcome To Zingy
@@ -69,7 +74,6 @@ export const LoginPage = () => {
                                     JSON.stringify(response.data.authUser)
                                 );
                                 setAuthUser(response.data.authUser);
-                                navigate('/dashboard');
                             }}
                         >
                             <Form.Field name="email">
@@ -133,8 +137,10 @@ export const LoginPage = () => {
                                 New User?{' '}
                                 <a
                                     className="cursor-pointer underline"
-                                    onClick={() =>
-                                        navigate({ pathname: '/register' })
+                                    onClick={async () =>
+                                        await navigate({
+                                            pathname: '/register',
+                                        })
                                     }
                                 >
                                     Register Now
@@ -149,7 +155,7 @@ export const LoginPage = () => {
                         </p>
                     )}
                 </div>
-            )}
+            }
         </>
     );
 };

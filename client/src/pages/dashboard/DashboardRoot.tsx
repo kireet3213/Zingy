@@ -5,7 +5,7 @@ import { ConversationContainer } from './ConversationContainer';
 import { Navigate, Outlet } from 'react-router-dom';
 import { SideBar } from './SideBar';
 import { socket } from '../../socket';
-import { ConversationContextProvider } from './ConversationContext';
+import { ConversationContextProvider } from './ConversationContextProvider';
 
 export function DashboardRoot() {
     const { authUser } = useContext(AuthContext);
@@ -65,14 +65,16 @@ export function DashboardRoot() {
 
     return (
         <ConversationContextProvider>
-            <div className="p-4 bg-slate-600 min-h-screen">
+            <div className="h-screen p-4 bg-slate-600 overflow-hidden">
                 {!authUser ? (
                     <Navigate to="/"></Navigate>
                 ) : (
-                    <div className="grid grid-cols-layout">
+                    <div className="h-full grid grid-cols-[70px_320px_1fr] bg-slate-900">
                         <SideBar />
                         <ConversationContainer />
-                        <Outlet />
+                        <div className="flex flex-col min-h-0 bg-slate-900">
+                            <Outlet />
+                        </div>
                     </div>
                 )}
             </div>

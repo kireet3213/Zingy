@@ -1,6 +1,37 @@
 {
-    "extends": ["./tsconfig.app.json", "./tsconfig.node.json"],
     "compilerOptions": {
-        "jsx": "react-jsx"
-    }
+        /* Language & Environment */
+        "target": "ES2022",
+        "lib": ["ES2022", "DOM", "DOM.Iterable"],
+        "jsx": "react-jsx",
+
+        /* Module */
+        "module": "ESNext",
+        "moduleResolution": "bundler",
+        "moduleDetection": "force",
+        "allowImportingTsExtensions": true,
+        "isolatedModules": true,
+        "useDefineForClassFields": true,
+        "noEmit": true,
+
+        /* Path Aliases */
+        "baseUrl": ".",
+        "paths": {
+            "@shared-types/*": ["../shared-types/*"]
+        },
+
+        /* Strictness */
+        "strict": true,
+        "noUnusedLocals": true,
+        "noUnusedParameters": true,
+        "noFallthroughCasesInSwitch": true,
+
+        /* Interop & Safety */
+        "skipLibCheck": true,
+        "esModuleInterop": true,
+        "forceConsistentCasingInFileNames": true
+    },
+
+    "include": ["src", "../shared-types"],
+    "exclude": ["node_modules", "dist"]
 }

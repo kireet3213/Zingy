@@ -3,6 +3,7 @@ import { NavLink } from 'react-router-dom';
 import { Maybe } from '../../types/utility';
 import { useMessageEvents } from '../../hooks/useMessageEvents.ts';
 import Tooltip from '../../components/Tooltip.tsx';
+import profilePic from '../../assets/profile.svg';
 
 type ConversationBoxProps = {
     conversationUsers: Maybe<UserConversation[]>;
@@ -15,7 +16,6 @@ const UserComponent = ({
     conversation: UserConversation;
 }) => {
     const {
-        profileImageUrl,
         senderName,
         unseenMessageCount,
         id,
@@ -36,12 +36,14 @@ const UserComponent = ({
             to={`/dashboard/${id}`}
             state={{ socketId, isConnected }}
             className={({ isActive }) => {
-                return `border-b border-gray-600 p-3 rounded-md overflow-hidden hover:bg-slate-900 ${isActive ? 'bg-slate-800' : 'bg-slate-500'}`;
+                return `border-b border-slate-700 p-3 hover:bg-slate-700 transition-colors duration-150 ${
+                    isActive ? 'bg-slate-700' : ''
+                }`;
             }}
         >
-            <div className="flex  ">
+            <div className="flex items-center gap-3">
                 <SenderImage
-                    profileImageUrl={profileImageUrl}
+                    profileImageUrl={profilePic}
                     isConnected={isConnected}
                 />
                 <div className="flex justify-between w-full">
@@ -67,11 +69,11 @@ const MessageTimeAndCount = ({
     lastMessageTime: Maybe<string>;
 }) => {
     return (
-        <div className="flex flex-col justify-between items-center">
+        <div className="flex flex-col items-end justify-between text-xs ml-2">
             <span className={'text-base text-blue-300'}>{lastMessageTime}</span>
             {unseenMessageCount > 0 && (
                 <Tooltip content={unseenMessageCount.toString()}>
-                    <span className="p-1 rounded-2xl bg-blue-600 text-center min-w-8 max-w-10 min-h-6 truncate overflow-hidden">
+                    <span className="px-2 py-0.5 rounded-full bg-blue-600 text-white text-xs min-w-[22px] text-center">
                         {unseenMessageCount}
                     </span>
                 </Tooltip>
@@ -87,9 +89,9 @@ const SenderNameAndLastMessage = ({
     senderName: string;
 }) => {
     return (
-        <div className="flex flex-col gap-2.5 max-w-xl text-xs text-slate-200 truncate hover:text-clip">
+        <div className="flex flex-col flex-1 min-w-0">
             <span className={'font-medium text-base'}>{senderName}</span>
-            <div className="text-slate-200 ">{lastMessage}</div>
+            <div className="text-sm text-slate-400 truncate">{lastMessage}</div>
         </div>
     );
 };
@@ -101,13 +103,11 @@ const SenderImage = ({
     isConnected: boolean;
 }) => {
     return (
-        <div className="overflow-hidden object-cover hover:cursor-pointer mr-2.5 relative min-w-12">
+        <div className="relative w-12 h-12 shrink-0">
             <img
                 src={profileImageUrl || defaultUrl}
-                alt="No Image"
-                height="100%"
-                className="rounded-full max-w-12"
-                onClick={(e) => e.preventDefault()}
+                alt="User"
+                className="w-12 h-12 rounded-full object-cover"
             />
             <span
                 className={`inline-block rounded-full absolute  min-h-2 min-w-2 bottom-0 right-0  ${isConnected ? 'bg-green-400' : 'bg-red-400'}`}

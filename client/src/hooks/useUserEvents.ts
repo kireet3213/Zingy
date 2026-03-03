@@ -71,8 +71,7 @@ export const useUserEvents = () => {
                         senderName: userPayload.user.username,
                         unseenMessageCount: 0,
                         profileImageUrl:
-                            userPayload.user.userProfile.profileUrl ||
-                            'https://letsenhance.io/static/8f5e523ee6b2479e26ecc91b9c25261e/1015f/MainAfter.jpg',
+                            userPayload.user.userProfile.profileUrl,
                         isConnected: userPayload.isConnected,
                         socketId: userPayload?.id,
                         messages: [],
