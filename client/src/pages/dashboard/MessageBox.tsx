@@ -30,7 +30,7 @@ export const MessageBox = forwardRef<HTMLDivElement, MessageBoxProps>(
                         key={message.id}
                         className={clsx(
                             'flex',
-                            message.fromSelf ? 'justify-start' : 'justify-end'
+                            message.fromSelf ? 'justify-end' : 'justify-start'
                         )}
                     >
                         <span
