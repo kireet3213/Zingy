@@ -3,7 +3,6 @@ import { socket } from '../socket.ts';
 import { Message } from '@shared-types/socket.ts';
 import { ConversationContext } from '../pages/dashboard/ConversationContext.tsx';
 import { AuthContext } from '../AuthContext.tsx';
-import { UserConversation } from '../pages/dashboard/types/conversation.ts';
 import { useParams } from 'react-router-dom';
 
 export const useMessageEvents = () => {
@@ -17,26 +16,34 @@ export const useMessageEvents = () => {
             from: string;
             to: string;
         }) => {
-            setConversationUsers((prev) => {
-                const newUserMap = prev.map((user) => {
-                    const userConversation: UserConversation = { ...user };
-                    if (user.id === payload.from) {
-                        const message: Message = {
-                            ...payload.message,
-                            fromSelf: false,
-                        };
-                        userConversation.messages.push(message);
+            setConversationUsers((prev) =>
+                prev.map((user) => {
+                    if (user.id !== payload.from && user.socketId !== payload.from) {
+                        return user;
                     }
-                    if (
-                        conversation_id !== payload.from &&
-                        user.socketId === payload.from
-                    ) {
-                        userConversation.unseenMessageCount++;
+                    const messageExists = user.messages.some(
+                        (message) => message.id === payload.message.id
+                    );
+                    if (messageExists) {
+                        return user;
                     }
-                    return userConversation;
-                });
-                return newUserMap;
-            });
+                    const newMessage: Message = {
+                        ...payload.message,
+                        fromSelf: false,
+                    };
+                    const unseenIncrement =
+                        conversation_id !== payload.from && user.socketId === payload.from
+                            ? 1
+                            : 0;
+                    return {
+                        ...user,
+                        messages: user.id === payload.from
+                            ? [...user.messages, newMessage]
+                            : user.messages,
+                        unseenMessageCount: user.unseenMessageCount + unseenIncrement,
+                    };
+                })
+            );
         };
 
         socket.on('private-message', handlePrivateMessage);

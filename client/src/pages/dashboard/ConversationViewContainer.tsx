@@ -78,56 +78,66 @@ export function ConversationViewContainer() {
                     );
                 if (authUser?.id !== state?.socketId) {
                     setConversationUsers((prev) => {
-                        const newPrev = prev.map((user) => {
-                            if (user.id === state?.socketId) {
-                                user.messages.push({ ...messageDetails });
+                        return prev.map((user) => {
+                            if (user.id !== state?.socketId) {
+                                return user;
                             }
-                            return user;
+
+                            const alreadyExists = user.messages.some(
+                                (message) => message.id === messageDetails.id
+                            );
+                            if (alreadyExists) {
+                                return user;
+                            }
+
+                            return {
+                                ...user,
+                                messages: [...user.messages, { ...messageDetails }],
+                            };
                         });
-                        return newPrev;
                     });
                 }
             }
             sendMessageFieldRef.current.value = '';
+            setCurrentMessage('');
         }
     }
 
     return (
-        <div className="relative flex h-full min-h-0 flex-col bg-slate-400 rounded-tr-lg rounded-br-lg">
+        <div className="relative flex h-full min-h-0 flex-col bg-transparent">
             <div
                 ref={messageBoxRef}
-                className="flex flex-1 min-h-0 flex-col justify-center overflow-auto"
+                className="flex flex-1 min-h-0 flex-col justify-center overflow-auto px-2 md:px-6"
             >
                 <MessageBox messages={messages} />
             </div>
-            <textarea
-                className="rounded-lg border-2 mb-1 resize-none p-1 text-left content-center m-1 focus:outline-none"
-                ref={sendMessageFieldRef}
-                placeholder="Send message…"
-                onChange={(e) => {
-                    setCurrentMessage(e.currentTarget.value);
-                }}
-                defaultValue={undefined}
-                onKeyDown={(e) => {
-                    if (e.key === 'Enter' && e.shiftKey) return;
-                    if (e.key === 'Enter') {
-                        submitMessage();
-                    }
-                }}
-            />
-            <button
-                className="bg-slate-300 w-10 h-10 absolute right-2.5 bottom-2.5 rounded-full flex items-center justify-center hover:bg-slate-400"
-                onClick={submitMessage}
-            >
-                <PaperPlaneIcon
-                    color=" #fbbf24"
-                    stroke="currentColor"
-                    strokeWidth={1}
-                    fill="red"
-                    className="cursor-pointer text-slate-800"
-                    cursor="pointer"
-                />
-            </button>
+            <div className="p-2 md:p-4">
+                <div className="relative">
+                    <textarea
+                        className="w-full rounded-2xl border border-white/10 bg-white/5 resize-none px-4 py-3 pr-14 text-sm text-slate-200 placeholder-slate-500 focus:outline-none input-glow transition-all duration-200"
+                        ref={sendMessageFieldRef}
+                        placeholder="Type a message..."
+                        rows={1}
+                        onChange={(e) => {
+                            setCurrentMessage(e.currentTarget.value);
+                        }}
+                        defaultValue={undefined}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter' && e.shiftKey) return;
+                            if (e.key === 'Enter') {
+                                e.preventDefault();
+                                submitMessage();
+                            }
+                        }}
+                    />
+                    <button
+                        className="absolute right-2 top-1/2 -translate-y-1/2 bg-indigo-500 hover:bg-indigo-400 w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-200 active:scale-95"
+                        onClick={submitMessage}
+                    >
+                        <PaperPlaneIcon className="w-4 h-4 text-white" />
+                    </button>
+                </div>
+            </div>
         </div>
     );
 }
