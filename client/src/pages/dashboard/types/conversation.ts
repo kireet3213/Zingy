@@ -1,13 +1,12 @@
-import { Maybe } from '../../../types/utility';
 import { Message } from '@shared-types/socket';
 
 export type UserConversation = {
     id: string;
+    conversationId?: number;
     senderName: string;
     unseenMessageCount: number;
     profileImageUrl: string;
     isConnected: boolean;
-    socketId?: Maybe<string>;
     messages: Message[];
     self: boolean;
 };

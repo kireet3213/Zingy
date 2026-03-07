@@ -14,10 +14,6 @@ export const up: Migration = async function ({ context: queryInterface }) {
             type: DataTypes.TEXT,
             allowNull: false,
         },
-        reaction: {
-            type: DataTypes.STRING,
-            allowNull: true,
-        },
         readAt: {
             type: DataTypes.DATE,
             allowNull: true,

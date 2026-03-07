@@ -1,13 +1,11 @@
 import { PaperPlaneIcon } from '@radix-ui/react-icons';
-import { useLocation } from 'react-router-dom';
-import { useContext, useEffect, useRef, useState } from 'react';
+import { useParams } from 'react-router-dom';
+import { useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { socket } from '../../socket';
 import { AcknowledgementCallback, Message } from '@shared-types/socket';
 import { ConversationContext } from './ConversationContext';
 import { MessageBox } from './MessageBox';
-import { v7 as uuidV7 } from 'uuid';
-import { AuthContext } from '../../AuthContext';
-import { Maybe } from '../../types/utility.ts';
+import { get, post } from '../../helpers/axios-client.ts';
 
 const sendMessageTone = new Audio('/happy-pop.mp3');
 
@@ -28,79 +26,188 @@ const acknowledgementCallback: AcknowledgementCallback = (
 };
 
 export function ConversationViewContainer() {
-    const location = useLocation();
-    const state: Maybe<{ socketId: string; isConnected: boolean }> =
-        location.state;
-    const { authUser } = useContext(AuthContext);
+    const { conversation_id } = useParams<{ conversation_id: string }>();
 
     const [currentMessage, setCurrentMessage] = useState('');
     const sendMessageFieldRef = useRef<HTMLTextAreaElement>(null);
     const messageBoxRef = useRef<HTMLDivElement>(null);
-    const [messages, setMessages] = useState<Message[]>([]);
     const { conversationUsers, setConversationUsers } =
         useContext(ConversationContext);
+    const selectedUser = conversationUsers.find(
+        (conversationUser) => conversationUser.id === conversation_id
+    );
+
+    type MessageApiPayload = {
+        id: string;
+        text: string;
+        createdAt: string;
+        updatedAt: string;
+        sender: {
+            id: string;
+            username: string;
+        };
+    };
+
+    const ensureConversationId = useCallback(async (): Promise<
+        number | null
+    > => {
+        if (!conversation_id) return null;
+
+        const existingConversationId = selectedUser?.conversationId;
+        if (existingConversationId) return existingConversationId;
+
+        try {
+            const response = await post<null>(
+                `/conversations/direct/${conversation_id}`,
+                null
+            );
+            const data = response.data as {
+                success: boolean;
+                conversationId: number;
+            };
+            if (!data?.conversationId) return null;
+            setConversationUsers((prev) =>
+                prev.map((user) =>
+                    user.id === conversation_id
+                        ? { ...user, conversationId: data.conversationId }
+                        : user
+                )
+            );
+            return data.conversationId;
+        } catch (error) {
+            // eslint-disable-next-line no-console
+            console.error('Failed to resolve conversation id', error);
+            return null;
+        }
+    }, [conversation_id, selectedUser?.conversationId, setConversationUsers]);
 
     useEffect(() => {
-        const user = conversationUsers.find(
-            (user) => user.socketId === state?.socketId
-        );
-        if (user) {
-            //eslint-disable-next-line
-            setMessages(user.messages);
-        }
-        //set scroll to bottom
         if (messageBoxRef.current) {
             messageBoxRef.current.scrollTop =
                 messageBoxRef.current.scrollHeight;
         }
-    }, [conversationUsers, messages, state?.socketId]);
+    }, [selectedUser?.messages]);
+
+    useEffect(() => {
+        if (!conversation_id) return;
+
+        const loadMessages = async () => {
+            const conversationId =
+                selectedUser?.conversationId || (await ensureConversationId());
+            if (!conversationId) return;
+            try {
+                const response = await get(
+                    `/conversations/${conversationId}/messages`,
+                    {
+                        params: {
+                            page: 1,
+                            perPage: 100,
+                        },
+                    }
+                );
+                const payload = response.data as {
+                    success: boolean;
+                    messages: MessageApiPayload[];
+                };
+
+                const mappedMessages: Message[] = payload.messages.map(
+                    (messagePayload) => ({
+                        id: messagePayload.id,
+                        createdAt: messagePayload.createdAt,
+                        updatedAt: messagePayload.updatedAt,
+                        text: messagePayload.text,
+                        to: conversation_id,
+                        fromSelf: messagePayload.sender.id !== conversation_id,
+                    })
+                );
+
+                setConversationUsers((prev) =>
+                    prev.map((user) =>
+                        user.id === conversation_id
+                            ? {
+                                  ...user,
+                                  messages: mappedMessages,
+                                  unseenMessageCount: 0,
+                              }
+                            : user
+                    )
+                );
+            } catch (error) {
+                // eslint-disable-next-line no-console
+                console.error('Failed to fetch messages', error);
+            }
+        };
+
+        void loadMessages();
+    }, [
+        selectedUser?.conversationId,
+        conversation_id,
+        setConversationUsers,
+        ensureConversationId,
+    ]);
 
     async function submitMessage() {
-        if (sendMessageFieldRef.current) {
-            if (!sendMessageFieldRef.current.value?.trim()) return;
-            sendMessageTone.currentTime = 0;
-            await sendMessageTone.play();
-            const messageDetails: Message = {
-                id: uuidV7(),
-                createdAt: new Date().toString(),
-                updatedAt: new Date().toString(),
-                text: currentMessage,
-                to: state?.socketId || '',
+        if (!sendMessageFieldRef.current || !selectedUser) return;
+        if (!sendMessageFieldRef.current.value?.trim()) return;
+        const conversationId =
+            selectedUser.conversationId || (await ensureConversationId());
+        if (!conversationId) return;
+
+        try {
+            const response = await post(
+                `/conversations/${conversationId}/messages`,
+                {
+                    text: currentMessage.trim(),
+                }
+            );
+            const data = response.data as {
+                success: boolean;
+                message: MessageApiPayload;
+            };
+            const persistedMessage: Message = {
+                id: data.message.id,
+                createdAt: data.message.createdAt,
+                updatedAt: data.message.updatedAt,
+                text: data.message.text,
+                to: selectedUser.id,
                 fromSelf: true,
             };
-            if (state?.isConnected && state?.socketId) {
+
+            sendMessageTone.currentTime = 0;
+            await sendMessageTone.play();
+
+            setConversationUsers((prev) =>
+                prev.map((user) => {
+                    if (user.id !== selectedUser.id) {
+                        return user;
+                    }
+                    const alreadyExists = user.messages.some(
+                        (message) => message.id === persistedMessage.id
+                    );
+                    if (alreadyExists) return user;
+                    return {
+                        ...user,
+                        messages: [...user.messages, persistedMessage],
+                    };
+                })
+            );
+
+            if (selectedUser.isConnected) {
                 socket
                     .timeout(5000)
                     .emit(
                         'private-message',
-                        messageDetails,
+                        persistedMessage,
                         acknowledgementCallback
                     );
-                if (authUser?.id !== state?.socketId) {
-                    setConversationUsers((prev) => {
-                        return prev.map((user) => {
-                            if (user.id !== state?.socketId) {
-                                return user;
-                            }
-
-                            const alreadyExists = user.messages.some(
-                                (message) => message.id === messageDetails.id
-                            );
-                            if (alreadyExists) {
-                                return user;
-                            }
-
-                            return {
-                                ...user,
-                                messages: [...user.messages, { ...messageDetails }],
-                            };
-                        });
-                    });
-                }
             }
-            sendMessageFieldRef.current.value = '';
-            setCurrentMessage('');
+        } catch (error) {
+            // eslint-disable-next-line no-console
+            console.error('Failed to send message', error);
         }
+
+        sendMessageFieldRef.current.value = '';
+        setCurrentMessage('');
     }
 
     return (
@@ -109,7 +216,7 @@ export function ConversationViewContainer() {
                 ref={messageBoxRef}
                 className="flex flex-1 min-h-0 flex-col justify-center overflow-auto px-2 md:px-6"
             >
-                <MessageBox messages={messages} />
+                <MessageBox messages={selectedUser?.messages || []} />
             </div>
             <div className="p-2 md:p-4">
                 <div className="relative">

@@ -10,6 +10,18 @@ type ConversationBoxProps = {
 };
 const defaultUrl =
     'https://png.pngtree.com/png-vector/20190710/ourmid/pngtree-user-vector-avatar-png-image_1541962.jpg';
+
+function formatTime(dateInput: string | undefined): string {
+    if (!dateInput) return '';
+    const parsedDate = new Date(dateInput);
+    if (Number.isNaN(parsedDate.getTime())) return '';
+    return parsedDate.toLocaleTimeString([], {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false,
+    });
+}
+
 const UserComponent = ({
     conversation,
 }: {
@@ -20,24 +32,19 @@ const UserComponent = ({
         unseenMessageCount,
         id,
         isConnected = false,
-        socketId,
         messages,
     } = conversation;
-    const lastMessageTime = messages
-        ?.at(-1)
-        ?.createdAt.split(' ')[4]
-        .split(':')
-        .slice(0, 2)
-        .join(':');
+    const lastMessageTime = formatTime(messages?.at(-1)?.createdAt);
     const lastMessage = messages.at(-1)?.text || '';
 
     return (
         <NavLink
             to={`/dashboard/${id}`}
-            state={{ socketId, isConnected }}
             className={({ isActive }) => {
                 return `px-3 py-3 hover:bg-white/5 transition-all duration-200 ${
-                    isActive ? 'bg-indigo-500/10 border-l-2 border-l-indigo-500' : 'border-l-2 border-l-transparent'
+                    isActive
+                        ? 'bg-indigo-500/10 border-l-2 border-l-indigo-500'
+                        : 'border-l-2 border-l-transparent'
                 }`;
             }}
         >
@@ -90,8 +97,12 @@ const SenderNameAndLastMessage = ({
 }) => {
     return (
         <div className="flex flex-col flex-1 min-w-0">
-            <span className="font-medium text-sm text-slate-200">{senderName}</span>
-            <div className="text-xs text-slate-500 truncate mt-0.5">{lastMessage}</div>
+            <span className="font-medium text-sm text-slate-200">
+                {senderName}
+            </span>
+            <div className="text-xs text-slate-500 truncate mt-0.5">
+                {lastMessage}
+            </div>
         </div>
     );
 };

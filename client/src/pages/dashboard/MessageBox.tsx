@@ -9,11 +9,13 @@ type MessageBoxProps = {
 
 function getTime(date: string): Maybe<string> {
     if (!date) return null;
-    const parts = date.split(' ')[4];
-    const hourAndMinutes = parts.split(':');
-    const hour = hourAndMinutes[0];
-    const minutes = hourAndMinutes[1];
-    return `${hour}:${minutes}`;
+    const parsedDate = new Date(date);
+    if (Number.isNaN(parsedDate.getTime())) return null;
+    return parsedDate.toLocaleTimeString([], {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false,
+    });
 }
 
 export const MessageBox = forwardRef<HTMLDivElement, MessageBoxProps>(
@@ -41,11 +43,17 @@ export const MessageBox = forwardRef<HTMLDivElement, MessageBoxProps>(
                                     : 'msg-received text-slate-200 rounded-br-sm'
                             )}
                         >
-                            <span className="text-sm leading-relaxed">{message.text}</span>
-                            <span className={clsx(
-                                'text-[10px] block text-end mt-1',
-                                message.fromSelf ? 'text-indigo-200/60' : 'text-slate-500'
-                            )}>
+                            <span className="text-sm leading-relaxed">
+                                {message.text}
+                            </span>
+                            <span
+                                className={clsx(
+                                    'text-[10px] block text-end mt-1',
+                                    message.fromSelf
+                                        ? 'text-indigo-200/60'
+                                        : 'text-slate-500'
+                                )}
+                            >
                                 {`${getTime(message.updatedAt)}`}
                             </span>
                         </span>
