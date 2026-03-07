@@ -1,0 +1,82 @@
+version: 2
+updates:
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "04:00"
+      timezone: "UTC"
+    open-pull-requests-limit: 10
+    versioning-strategy: increase-if-necessary
+    labels:
+      - "dependencies"
+      - "javascript"
+      - "pnpm"
+    commit-message:
+      prefix: "deps"
+      include: "scope"
+    groups:
+      react-stack:
+        patterns:
+          - "react"
+          - "react-dom"
+          - "react-router-dom"
+      radix-ui:
+        patterns:
+          - "@radix-ui/*"
+      vite-and-styles:
+        patterns:
+          - "vite"
+          - "@vitejs/*"
+          - "tailwindcss"
+          - "@tailwindcss/*"
+          - "postcss"
+          - "autoprefixer"
+      typescript-and-types:
+        patterns:
+          - "typescript"
+          - "ts-node"
+          - "typescript-eslint"
+          - "@types/*"
+      lint-and-format:
+        patterns:
+          - "eslint"
+          - "eslint-*"
+          - "@eslint/*"
+          - "prettier"
+          - "globals"
+      backend-runtime:
+        patterns:
+          - "express"
+          - "express-*"
+          - "socket.io"
+          - "socket.io-client"
+          - "sequelize"
+          - "sequelize-typescript"
+          - "umzug"
+          - "mysql2"
+          - "passport"
+          - "passport-*"
+          - "jsonwebtoken"
+          - "bcrypt"
+          - "cors"
+          - "dotenv"
+          - "body-parser"
+          - "class-validator"
+          - "glob"
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "04:30"
+      timezone: "UTC"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "github-actions"
+    commit-message:
+      prefix: "ci"
+      include: "scope"
