@@ -65,15 +65,17 @@ export function DashboardRoot() {
 
     return (
         <ConversationContextProvider>
-            <div className="h-screen p-4 bg-slate-600 overflow-hidden">
+            <div className="h-screen chat-gradient overflow-hidden">
                 {!authUser ? (
                     <Navigate to="/"></Navigate>
                 ) : (
-                    <div className="h-full grid grid-cols-[70px_320px_1fr] bg-slate-900">
+                    <div className="h-full flex flex-col md:flex-row">
                         <SideBar />
-                        <ConversationContainer />
-                        <div className="flex flex-col min-h-0 bg-slate-900">
-                            <Outlet />
+                        <div className="flex flex-1 min-h-0 flex-col md:flex-row">
+                            <ConversationContainer />
+                            <div className="flex flex-col flex-1 min-h-0 min-w-0">
+                                <Outlet />
+                            </div>
                         </div>
                     </div>
                 )}

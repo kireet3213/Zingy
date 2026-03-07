@@ -10,11 +10,11 @@ const ToolTip = ({
                 <Tooltip.Trigger asChild>{children}</Tooltip.Trigger>
                 <Tooltip.Portal>
                     <Tooltip.Content
-                        className="bg-black text-white p-1 rounded"
+                        className="bg-slate-800 text-slate-200 text-xs px-2.5 py-1.5 rounded-lg border border-white/10 shadow-xl"
                         sideOffset={5}
                     >
                         {content}
-                        <Tooltip.Arrow className="" />
+                        <Tooltip.Arrow className="fill-slate-800" />
                     </Tooltip.Content>
                 </Tooltip.Portal>
             </Tooltip.Root>

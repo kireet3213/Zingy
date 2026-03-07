@@ -36,8 +36,8 @@ const UserComponent = ({
             to={`/dashboard/${id}`}
             state={{ socketId, isConnected }}
             className={({ isActive }) => {
-                return `border-b border-slate-700 p-3 hover:bg-slate-700 transition-colors duration-150 ${
-                    isActive ? 'bg-slate-700' : ''
+                return `px-3 py-3 hover:bg-white/5 transition-all duration-200 ${
+                    isActive ? 'bg-indigo-500/10 border-l-2 border-l-indigo-500' : 'border-l-2 border-l-transparent'
                 }`;
             }}
         >
@@ -46,7 +46,7 @@ const UserComponent = ({
                     profileImageUrl={profilePic}
                     isConnected={isConnected}
                 />
-                <div className="flex justify-between w-full">
+                <div className="flex justify-between w-full min-w-0">
                     <SenderNameAndLastMessage
                         lastMessage={lastMessage}
                         senderName={senderName}
@@ -69,11 +69,11 @@ const MessageTimeAndCount = ({
     lastMessageTime: Maybe<string>;
 }) => {
     return (
-        <div className="flex flex-col items-end justify-between text-xs ml-2">
-            <span className={'text-base text-blue-300'}>{lastMessageTime}</span>
+        <div className="flex flex-col items-end justify-between text-xs ml-2 shrink-0">
+            <span className="text-xs text-slate-500">{lastMessageTime}</span>
             {unseenMessageCount > 0 && (
                 <Tooltip content={unseenMessageCount.toString()}>
-                    <span className="px-2 py-0.5 rounded-full bg-blue-600 text-white text-xs min-w-[22px] text-center">
+                    <span className="px-1.5 py-0.5 rounded-full bg-indigo-500 text-white text-[10px] font-medium min-w-[20px] text-center mt-1">
                         {unseenMessageCount}
                     </span>
                 </Tooltip>
@@ -90,8 +90,8 @@ const SenderNameAndLastMessage = ({
 }) => {
     return (
         <div className="flex flex-col flex-1 min-w-0">
-            <span className={'font-medium text-base'}>{senderName}</span>
-            <div className="text-sm text-slate-400 truncate">{lastMessage}</div>
+            <span className="font-medium text-sm text-slate-200">{senderName}</span>
+            <div className="text-xs text-slate-500 truncate mt-0.5">{lastMessage}</div>
         </div>
     );
 };
@@ -103,14 +103,14 @@ const SenderImage = ({
     isConnected: boolean;
 }) => {
     return (
-        <div className="relative w-12 h-12 shrink-0">
+        <div className="relative w-10 h-10 shrink-0">
             <img
                 src={profileImageUrl || defaultUrl}
                 alt="User"
-                className="w-12 h-12 rounded-full object-cover"
+                className="w-10 h-10 rounded-full object-cover ring-2 ring-white/10"
             />
             <span
-                className={`inline-block rounded-full absolute  min-h-2 min-w-2 bottom-0 right-0  ${isConnected ? 'bg-green-400' : 'bg-red-400'}`}
+                className={`inline-block rounded-full absolute h-2.5 w-2.5 bottom-0 right-0 ring-2 ring-slate-900 ${isConnected ? 'bg-emerald-400' : 'bg-slate-600'}`}
             ></span>
         </div>
     );

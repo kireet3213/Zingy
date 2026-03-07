@@ -2,6 +2,40 @@
 
 @layer base {
     html {
-        @apply font-mono;
+        @apply font-sans antialiased;
+    }
+
+    /* Custom scrollbar */
+    ::-webkit-scrollbar {
+        width: 6px;
+    }
+    ::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+        background: rgba(99, 102, 241, 0.3);
+        border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+        background: rgba(99, 102, 241, 0.5);
+    }
+}
+
+@layer utilities {
+    .chat-gradient {
+        background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%);
+    }
+    .glass {
+        background: rgba(255, 255, 255, 0.03);
+        backdrop-filter: blur(12px);
+    }
+    .msg-sent {
+        background: linear-gradient(135deg, #4f46e5, #6366f1);
+    }
+    .msg-received {
+        background: rgba(255, 255, 255, 0.08);
+    }
+    .input-glow:focus {
+        box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.3);
     }
 }

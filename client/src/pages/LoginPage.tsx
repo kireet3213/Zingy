@@ -27,19 +27,19 @@ export const LoginPage = () => {
     return (
         <>
             {
-                <div className=" bg-slate-800 min-h-screen">
-                    <h2 className="text-7xl text-center text-slate-200 mb-14">
-                        Welcome To Zingy
+                <div className="chat-gradient min-h-screen flex flex-col items-center justify-center px-4">
+                    <h2 className="text-4xl md:text-6xl font-bold text-center text-white mb-6 tracking-tight">
+                        Welcome To <span className="text-indigo-400">Zingy</span>
                     </h2>
                     <img
-                        className="rounded-full mx-auto max-w-24 mb-14 cursor-none"
+                        className="rounded-full mx-auto w-20 h-20 mb-8 ring-4 ring-indigo-500/30"
                         src={logo}
                         alt="Zingy"
                     />
-                    <div className="flex flex-col justify-center items-center max-w-96  min-h-96 mx-auto bg-slate-600 rounded-md">
+                    <div className="flex flex-col justify-center items-center w-full max-w-sm min-h-80 mx-auto bg-white/5 border border-white/10 rounded-2xl p-6 shadow-2xl shadow-black/20">
                         <Form.Root
                             ref={formRef}
-                            className="flex flex-col items-center justify-center gap-5"
+                            className="flex flex-col items-center justify-center gap-4 w-full"
                             autoComplete="on"
                             onSubmit={async (e) => {
                                 e.preventDefault();
@@ -76,14 +76,14 @@ export const LoginPage = () => {
                                 setAuthUser(response.data.authUser);
                             }}
                         >
-                            <Form.Field name="email">
+                            <Form.Field name="email" className="w-full">
                                 <Form.ValidityState>
                                     {(validity) => {
                                         return (
                                             <>
                                                 <Form.Control asChild>
                                                     <input
-                                                        className="rounded p-2 bg-slate-200 focus:outline-none min-w-[300px]"
+                                                        className="w-full rounded-xl px-4 py-3 bg-white/5 border border-white/10 text-slate-200 placeholder-slate-500 focus:outline-none input-glow transition-all text-sm"
                                                         placeholder="Enter your email"
                                                         required
                                                         type="email"
@@ -100,14 +100,14 @@ export const LoginPage = () => {
                                     }}
                                 </Form.ValidityState>
                             </Form.Field>
-                            <Form.Field name="password">
+                            <Form.Field name="password" className="w-full">
                                 <Form.ValidityState>
                                     {(validity) => {
                                         return (
                                             <>
                                                 <Form.Control asChild>
                                                     <input
-                                                        className="rounded p-2 bg-slate-200 focus:outline-none min-w-[300px]"
+                                                        className="w-full rounded-xl px-4 py-3 bg-white/5 border border-white/10 text-slate-200 placeholder-slate-500 focus:outline-none input-glow transition-all text-sm"
                                                         placeholder="Enter your password"
                                                         required
                                                         type="password"
@@ -126,17 +126,17 @@ export const LoginPage = () => {
                             </Form.Field>
                             <Form.Submit asChild>
                                 <button
-                                    className="rounded-lg mb-3 w-1/2 p-2 bg-slate-300 hover:bg-slate-400"
+                                    className="w-full rounded-xl py-3 bg-indigo-500 hover:bg-indigo-400 text-white font-medium transition-all duration-200 active:scale-[0.98] text-sm"
                                     type="submit"
                                 >
                                     Login
                                 </button>
                             </Form.Submit>
                             {error && <ErrorValidation error={error} />}
-                            <div className="items-end text-slate-900">
+                            <div className="text-slate-400 text-sm">
                                 New User?{' '}
                                 <a
-                                    className="cursor-pointer underline"
+                                    className="cursor-pointer text-indigo-400 hover:text-indigo-300 underline transition-colors"
                                     onClick={async () =>
                                         await navigate({
                                             pathname: '/register',
@@ -149,7 +149,7 @@ export const LoginPage = () => {
                         </Form.Root>
                     </div>
                     {status && (
-                        <p>
+                        <p className="mt-4 text-emerald-400 flex items-center gap-2">
                             <InfoCircledIcon />
                             Login Successful
                         </p>

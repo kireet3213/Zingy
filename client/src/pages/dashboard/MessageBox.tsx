@@ -23,26 +23,33 @@ export const MessageBox = forwardRef<HTMLDivElement, MessageBoxProps>(
         return (
             <div
                 ref={ref}
-                className="flex flex-col gap-5 p-2.5 flex-1 justify-end text-slate-600"
+                className="flex flex-col gap-2 p-3 md:p-4 flex-1 justify-end"
             >
                 {messages?.map((message) => (
-                    <span
+                    <div
                         key={message.id}
                         className={clsx(
-                            'bg-slate-100 max-w-[50%] min-w-24 rounded-md hyphens-auto p-2 relative self-end',
-                            message.fromSelf && 'self-start bg-slate-200 '
+                            'flex',
+                            message.fromSelf ? 'justify-start' : 'justify-end'
                         )}
                     >
-                        <span>{message.text}</span>
-                        <img
-                            className="absolute w-4 h-4 bottom-0 right-0"
-                            src="/sent.svg"
-                            alt="Sent Icon"
-                        />
-                        <span className="text-[0.6rem] font-extralight block text-end -mb-1.5 mx-2">
-                            {`${getTime(message.updatedAt)}`}
+                        <span
+                            className={clsx(
+                                'max-w-[75%] md:max-w-[50%] min-w-20 rounded-2xl hyphens-auto px-4 py-2 relative',
+                                message.fromSelf
+                                    ? 'msg-sent text-white rounded-bl-sm'
+                                    : 'msg-received text-slate-200 rounded-br-sm'
+                            )}
+                        >
+                            <span className="text-sm leading-relaxed">{message.text}</span>
+                            <span className={clsx(
+                                'text-[10px] block text-end mt-1',
+                                message.fromSelf ? 'text-indigo-200/60' : 'text-slate-500'
+                            )}>
+                                {`${getTime(message.updatedAt)}`}
+                            </span>
                         </span>
-                    </span>
+                    </div>
                 ))}
             </div>
         );
