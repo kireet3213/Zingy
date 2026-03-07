@@ -12,6 +12,8 @@ import { globalErrorHandler } from './middleware/error-handler.middleware';
 import passport from 'passport';
 import session from 'express-session';
 import authRoutes from './routes/auth/auth';
+import messageRoutes from './routes/message/message';
+import conversationRoutes from './routes/conversation/conversation';
 import { localStrategy } from './strategies/localStrategy';
 import { verifyToken } from './middleware/verification.middleware';
 import { Server } from 'socket.io';
@@ -47,6 +49,8 @@ app.get('/', (_req: Request, res: Response) => {
 const apiRouter = express.Router();
 apiRouter.use('/user', userRoutes);
 apiRouter.use('/auth', authRoutes);
+apiRouter.use('/', messageRoutes);
+apiRouter.use('/', conversationRoutes);
 
 app.use('/api', apiRouter);
 app.use('/protected', verifyToken, (_req: Request, res: Response) => {

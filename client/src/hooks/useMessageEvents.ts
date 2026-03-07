@@ -18,7 +18,7 @@ export const useMessageEvents = () => {
         }) => {
             setConversationUsers((prev) =>
                 prev.map((user) => {
-                    if (user.id !== payload.from && user.socketId !== payload.from) {
+                    if (user.id !== payload.from) {
                         return user;
                     }
                     const messageExists = user.messages.some(
@@ -32,15 +32,12 @@ export const useMessageEvents = () => {
                         fromSelf: false,
                     };
                     const unseenIncrement =
-                        conversation_id !== payload.from && user.socketId === payload.from
-                            ? 1
-                            : 0;
+                        conversation_id !== payload.from ? 1 : 0;
                     return {
                         ...user,
-                        messages: user.id === payload.from
-                            ? [...user.messages, newMessage]
-                            : user.messages,
-                        unseenMessageCount: user.unseenMessageCount + unseenIncrement,
+                        messages: [...user.messages, newMessage],
+                        unseenMessageCount:
+                            user.unseenMessageCount + unseenIncrement,
                     };
                 })
             );

@@ -4,10 +4,43 @@ import { AuthContext } from '../AuthContext.tsx';
 import { User } from '@shared-types/socket.ts';
 import { UserConversation } from '../pages/dashboard/types/conversation.ts';
 import { socket } from '../socket.ts';
+import { post } from '../helpers/axios-client.ts';
+
+type DirectConversationApiResponse = {
+    success: boolean;
+    conversationId: number;
+    participants: string[];
+};
 
 export const useUserEvents = () => {
     const { setConversationUsers } = useContext(ConversationContext);
     const { authUser } = useContext(AuthContext);
+    const authUserId = authUser?.id;
+
+    const ensureConversation = useCallback(
+        async (targetUserId: string) => {
+            if (!authUserId) return;
+            try {
+                const response = await post<null>(
+                    `/conversations/direct/${targetUserId}`,
+                    null
+                );
+                const data = response.data as DirectConversationApiResponse;
+                if (!data?.conversationId) return;
+                setConversationUsers((prev) =>
+                    prev.map((user) =>
+                        user.id === targetUserId
+                            ? { ...user, conversationId: data.conversationId }
+                            : user
+                    )
+                );
+            } catch (error) {
+                // eslint-disable-next-line no-console
+                console.error('Failed to resolve conversation', error);
+            }
+        },
+        [authUserId, setConversationUsers]
+    );
 
     const onNewConnection = useCallback(
         (payload: { id: string; user: User }) => {
@@ -27,19 +60,20 @@ export const useUserEvents = () => {
                 //new user
                 const conversationUser: UserConversation = {
                     id: payload.user.id,
+                    conversationId: undefined,
                     senderName: payload.user.username,
                     unseenMessageCount: 0,
                     profileImageUrl: payload.user.userProfile.profileUrl,
                     isConnected: true,
-                    socketId: payload?.id,
                     messages: [],
-                    self: payload.id === authUser?.id,
+                    self: payload.user.id === authUserId,
                 };
                 prev.push(conversationUser);
                 return [...prev];
             });
+            void ensureConversation(payload.user.id);
         },
-        [setConversationUsers, authUser]
+        [setConversationUsers, authUserId, ensureConversation]
     );
     const onUserDisconnect = useCallback(
         (userId: string) => {
@@ -59,7 +93,7 @@ export const useUserEvents = () => {
             const uniqueUsers = payload.reduce<
                 { id: string; user: User; isConnected: boolean }[]
             >((acc, current) => {
-                if (!acc.some((user) => user.id === current.id)) {
+                if (!acc.some((user) => user.user.id === current.user.id)) {
                     acc.push(current);
                 }
                 return acc;
@@ -68,20 +102,23 @@ export const useUserEvents = () => {
                 (userPayload) => {
                     return {
                         id: userPayload.user.id,
+                        conversationId: undefined,
                         senderName: userPayload.user.username,
                         unseenMessageCount: 0,
                         profileImageUrl:
                             userPayload.user.userProfile.profileUrl,
                         isConnected: userPayload.isConnected,
-                        socketId: userPayload?.id,
                         messages: [],
-                        self: userPayload.id === authUser?.id,
+                        self: userPayload.user.id === authUserId,
                     };
                 }
             );
             setConversationUsers(conversationUsers);
+            uniqueUsers.forEach((payload) => {
+                void ensureConversation(payload.user.id);
+            });
         },
-        [setConversationUsers, authUser]
+        [setConversationUsers, authUserId, ensureConversation]
     );
 
     useEffect(() => {

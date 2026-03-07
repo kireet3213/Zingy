@@ -29,7 +29,8 @@ export const LoginPage = () => {
             {
                 <div className="chat-gradient min-h-screen flex flex-col items-center justify-center px-4">
                     <h2 className="text-4xl md:text-6xl font-bold text-center text-white mb-6 tracking-tight">
-                        Welcome To <span className="text-indigo-400">Zingy</span>
+                        Welcome To{' '}
+                        <span className="text-indigo-400">Zingy</span>
                     </h2>
                     <img
                         className="rounded-full mx-auto w-20 h-20 mb-8 ring-4 ring-indigo-500/30"

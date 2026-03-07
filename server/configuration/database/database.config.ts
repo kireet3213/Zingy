@@ -8,6 +8,7 @@ import { Conversation } from '../../database/models/conversation.model';
 import { ConversationUser } from '../../database/models/conversationUser.model';
 import { Message } from '../../database/models/message.model';
 import { UserProfile } from '../../database/models/userProfile.model';
+import { MessageAttachment } from '../../database/models/messageAttachment.model';
 
 const connection = new Sequelize({
     dialect: (process.env.DB_DIALECT || 'mysql') as Dialect,
@@ -21,7 +22,14 @@ const connection = new Sequelize({
               console.log('\x1b[35m%s\x1b[0m', query)
             : undefined;
     },
-    models: [User, Conversation, ConversationUser, Message, UserProfile],
+    models: [
+        User,
+        Conversation,
+        ConversationUser,
+        Message,
+        UserProfile,
+        MessageAttachment,
+    ],
     port: (process.env.DB_PORT || 3306) as number,
 });
 

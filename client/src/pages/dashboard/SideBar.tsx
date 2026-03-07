@@ -15,7 +15,9 @@ export const SideBar = () => {
     const { setAuthUser } = useContext(AuthContext);
     return (
         <div className="flex md:flex-col-reverse flex-row items-center justify-between md:justify-end bg-slate-900/80 border-b md:border-b-0 md:border-r border-white/5 px-3 py-2 md:px-0 md:py-0 md:w-16 shrink-0">
-            <span className="text-indigo-400 font-bold text-lg md:hidden">Zingy</span>
+            <span className="text-indigo-400 font-bold text-lg md:hidden">
+                Zingy
+            </span>
             <DropdownRoot>
                 <DropdownTrigger>
                     <span className="flex h-10 w-10 bg-white/5 hover:bg-indigo-500/20 items-center justify-center cursor-pointer md:mb-4 rounded-xl transition-all duration-200">

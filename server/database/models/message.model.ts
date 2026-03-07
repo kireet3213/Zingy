@@ -1,14 +1,17 @@
 import {
     AllowNull,
+    BelongsTo,
     Column,
     DataType,
     ForeignKey,
+    HasMany,
     Model,
     PrimaryKey,
     Table,
 } from 'sequelize-typescript';
 import { Conversation } from './conversation.model';
 import { User } from './user.model';
+import { MessageAttachment } from './messageAttachment.model';
 
 @Table({
     timestamps: true,
@@ -28,13 +31,6 @@ export class Message extends Model {
         allowNull: false,
     })
     message: string;
-
-    @Column({
-        type: DataType.STRING,
-        allowNull: true,
-        defaultValue: null,
-    })
-    reaction: string | null;
 
     @AllowNull
     @Column({
@@ -61,7 +57,20 @@ export class Message extends Model {
     @ForeignKey(() => User)
     @AllowNull(false)
     @Column({
-        type: DataType.BIGINT.UNSIGNED,
+        type: DataType.UUID,
     })
     senderId: string;
+
+    @BelongsTo(() => Message, {
+        foreignKey: 'replyId',
+        targetKey: 'id',
+        as: 'replyTo',
+    })
+    replyTo: Message;
+
+    @HasMany(() => MessageAttachment, {
+        foreignKey: 'messageId',
+        as: 'attachments',
+    })
+    attachments: MessageAttachment[];
 }
