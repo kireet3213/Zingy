@@ -1,4 +1,4 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+import { createApi, fetchBaseQuery, FetchArgs } from '@reduxjs/toolkit/query/react';
 import { Message } from '@shared-types/socket';
 
 type MessageApiPayload = {
@@ -36,18 +36,42 @@ type ResolveDirectConversationRequest = {
     userId: string;
 };
 
+const dynamicBaseQuery = fetchBaseQuery({
+    baseUrl: '',
+    prepareHeaders: (headers) => {
+        const token = localStorage.getItem('jwt_secret');
+        if (token) {
+            headers.set('Authorization', `Bearer ${token}`);
+        }
+        return headers;
+    },
+});
+
+const baseQueryWithDynamicUrl = async (
+    args: string | FetchArgs,
+    api: any,
+    extraOptions: any
+) => {
+    const serverUrl = localStorage.getItem('serverUrl') || import.meta.env.VITE_API_URL || '';
+    const baseUrl = `${serverUrl}/api`;
+
+    let finalArgs = args;
+    if (typeof args === 'string') {
+        finalArgs = `${baseUrl}/${args}`;
+    } else {
+        const url = args.url || '';
+        finalArgs = {
+            ...args,
+            url: `${baseUrl}/${url}`,
+        };
+    }
+
+    return dynamicBaseQuery(finalArgs, api, extraOptions);
+};
+
 export const apiSlice = createApi({
     reducerPath: 'api',
-    baseQuery: fetchBaseQuery({
-        baseUrl: `${import.meta.env.VITE_API_URL}/api`,
-        prepareHeaders: (headers) => {
-            const token = localStorage.getItem('jwt_secret');
-            if (token) {
-                headers.set('Authorization', `Bearer ${token}`);
-            }
-            return headers;
-        },
-    }),
+    baseQuery: baseQueryWithDynamicUrl,
     tagTypes: ['ConversationMessages'],
     endpoints: (builder) => ({
         getConversationMessages: builder.query<

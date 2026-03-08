@@ -2,6 +2,7 @@ import { configureStore } from '@reduxjs/toolkit';
 import authReducer from '../pages/auth/authSlice';
 import conversationReducer from '../pages/dashboard/conversationSlice';
 import messageReducer from '../pages/dashboard/messageSlice';
+import settingsReducer from './settingsSlice';
 import { apiSlice } from '../apiSlice';
 
 export const store = configureStore({
@@ -9,6 +10,7 @@ export const store = configureStore({
         auth: authReducer,
         conversations: conversationReducer,
         messages: messageReducer,
+        settings: settingsReducer,
         [apiSlice.reducerPath]: apiSlice.reducer,
     },
     middleware: (getDefaultMiddleware) =>

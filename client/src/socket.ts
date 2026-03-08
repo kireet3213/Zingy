@@ -4,17 +4,33 @@ import {
     ServerToClientEvents,
 } from '../../shared-types/socket';
 
-// "undefined" means the URL will be computed from the `window.location` object
-const URL = import.meta.env.PROD ? '' : import.meta.env.VITE_API_URL;
+const getSocketUrl = (): string => {
+    if (import.meta.env.PROD) {
+        return '';
+    }
+    return localStorage.getItem('serverUrl') || import.meta.env.VITE_API_URL || '';
+};
 
-export const socket: Socket<ServerToClientEvents, ClientToServerEvents> = io(
-    URL,
-    {
+let socketInstance: Socket<ServerToClientEvents, ClientToServerEvents>;
+
+const createSocket = (): Socket<ServerToClientEvents, ClientToServerEvents> => {
+    const url = getSocketUrl();
+    return io(url, {
         autoConnect: false,
         ackTimeout: 1000,
         reconnection: true,
         upgrade: true,
         reconnectionDelay: 1000,
         reconnectionDelayMax: 5000,
-    }
-);
+    });
+};
+
+socketInstance = createSocket();
+
+export const socket: Socket<ServerToClientEvents, ClientToServerEvents> = socketInstance;
+
+export const recreateSocket = () => {
+    socketInstance?.close();
+    socketInstance = createSocket();
+    return socketInstance;
+};
