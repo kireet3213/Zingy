@@ -1,27 +1,33 @@
 import * as Form from '@radix-ui/react-form';
 import { InfoCircledIcon } from '@radix-ui/react-icons';
-import { post } from '../helpers/axios-client';
 import { useNavigate } from 'react-router-dom';
-import { useContext, useEffect, useRef, useState } from 'react';
-import { AuthContext } from '../AuthContext';
-import { Maybe } from '../types/utility.ts';
-import { User } from '@shared-types/socket.ts';
-import type { AxiosResponse } from 'axios';
-import logo from '../assets/DALL·E Letter Z Design.webp';
-import { FormErrorValidation } from '../components/FormErrorValidation.tsx';
-import { ErrorValidation } from '../components/ErrorValidation.tsx';
+import { useEffect, useRef } from 'react';
+import logo from '../../assets/DALL·E Letter Z Design.webp';
+import { FormErrorValidation } from '../../components/FormErrorValidation.tsx';
+import { ErrorValidation } from '../../components/ErrorValidation.tsx';
+import { useAppDispatch, useAppSelector } from '../../store/hooks.ts';
+import {
+    login,
+    selectCurrentLoginStatus,
+    selectCurrentUser,
+} from './authSlice.ts';
 
 export const LoginPage = () => {
     const navigate = useNavigate();
-    const { authUser, setAuthUser } = useContext(AuthContext);
-    const [status, setStatus] = useState<boolean>(false);
-    const [error, setError] = useState<Maybe<string>>(null);
     const formRef = useRef<HTMLFormElement>(null);
+    const dispatch = useAppDispatch();
+    const authUser = useAppSelector(selectCurrentUser);
+    const loginStatus = useAppSelector(selectCurrentLoginStatus);
+    const status = loginStatus.status;
+    const errorText = loginStatus.errorText;
 
     useEffect(() => {
-        if (authUser) {
-            navigate('/dashboard');
+        async function navigateToDashboard() {
+            if (authUser) {
+                await navigate('/dashboard');
+            }
         }
+        void navigateToDashboard();
     }, [authUser, navigate]);
 
     return (
@@ -47,34 +53,11 @@ export const LoginPage = () => {
                                 const postData = Object.fromEntries(
                                     new FormData(e.currentTarget)
                                 );
-                                const response: Maybe<
-                                    AxiosResponse<{
-                                        authUser: User;
-                                        secret: string;
-                                        success: boolean;
-                                    }>
-                                > = await post('auth/login', postData)
-                                    .catch((error) => {
-                                        setError(error.message);
-                                        e.currentTarget.reset();
-                                        return null;
-                                    })
-                                    .finally(() => {
-                                        if (formRef.current) {
-                                            formRef.current.reset();
-                                        }
-                                    });
-                                if (!response) return;
-                                setStatus(response.data.success);
-                                localStorage.setItem(
-                                    'jwt_secret',
-                                    response.data.secret
-                                );
-                                localStorage.setItem(
-                                    'auth_user',
-                                    JSON.stringify(response.data.authUser)
-                                );
-                                setAuthUser(response.data.authUser);
+                                await dispatch(login(postData)).finally(() => {
+                                    if (formRef.current) {
+                                        formRef.current.reset();
+                                    }
+                                });
                             }}
                         >
                             <Form.Field name="email" className="w-full">
@@ -91,7 +74,7 @@ export const LoginPage = () => {
                                                     />
                                                 </Form.Control>
                                                 {(validity?.valid === false ||
-                                                    !!error) && (
+                                                    status === 'rejected') && (
                                                     <FormErrorValidation
                                                         state={validity}
                                                     />
@@ -115,7 +98,7 @@ export const LoginPage = () => {
                                                     />
                                                 </Form.Control>
                                                 {(validity?.valid === false ||
-                                                    !!error) && (
+                                                    status === 'rejected') && (
                                                     <FormErrorValidation
                                                         state={validity}
                                                     />
@@ -133,7 +116,9 @@ export const LoginPage = () => {
                                     Login
                                 </button>
                             </Form.Submit>
-                            {error && <ErrorValidation error={error} />}
+                            {status === 'rejected' && (
+                                <ErrorValidation error={errorText!} />
+                            )}
                             <div className="text-slate-400 text-sm">
                                 New User?{' '}
                                 <a
