@@ -5,7 +5,8 @@ interface SettingsState {
 }
 
 const initialState: SettingsState = {
-    serverUrl: localStorage.getItem('serverUrl') || import.meta.env.VITE_API_URL || '',
+    serverUrl:
+        localStorage.getItem('serverUrl') || import.meta.env.VITE_API_URL || '',
 };
 
 const settingsSlice = createSlice({

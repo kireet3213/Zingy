@@ -1,4 +1,8 @@
-import { createApi, fetchBaseQuery, FetchArgs } from '@reduxjs/toolkit/query/react';
+import {
+    createApi,
+    fetchBaseQuery,
+    FetchArgs,
+} from '@reduxjs/toolkit/query/react';
 import { Message } from '@shared-types/socket';
 
 type MessageApiPayload = {
@@ -52,7 +56,8 @@ const baseQueryWithDynamicUrl = async (
     api: any,
     extraOptions: any
 ) => {
-    const serverUrl = localStorage.getItem('serverUrl') || import.meta.env.VITE_API_URL || '';
+    const serverUrl =
+        localStorage.getItem('serverUrl') || import.meta.env.VITE_API_URL || '';
     const baseUrl = `${serverUrl}/api`;
 
     let finalArgs = args;

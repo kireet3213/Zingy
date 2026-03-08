@@ -1,7 +1,7 @@
 import * as Form from '@radix-ui/react-form';
-import { InfoCircledIcon } from '@radix-ui/react-icons';
+import { InfoCircledIcon, GearIcon } from '@radix-ui/react-icons';
 import { useNavigate } from 'react-router-dom';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import logo from '../../assets/DALL·E Letter Z Design.webp';
 import { FormErrorValidation } from '../../components/FormErrorValidation.tsx';
 import { ErrorValidation } from '../../components/ErrorValidation.tsx';
@@ -11,6 +11,8 @@ import {
     selectCurrentLoginStatus,
     selectCurrentUser,
 } from './authSlice.ts';
+import { setServerUrl } from '../../store/settingsSlice.ts';
+import { recreateSocket } from '../../socket.ts';
 
 export const LoginPage = () => {
     const navigate = useNavigate();
@@ -20,6 +22,9 @@ export const LoginPage = () => {
     const loginStatus = useAppSelector(selectCurrentLoginStatus);
     const status = loginStatus.status;
     const errorText = loginStatus.errorText;
+    const serverUrl = useAppSelector((state) => state.settings.serverUrl);
+    const [showServerModal, setShowServerModal] = useState(false);
+    const [tempUrl, setTempUrl] = useState(serverUrl);
 
     useEffect(() => {
         async function navigateToDashboard() {
@@ -34,10 +39,22 @@ export const LoginPage = () => {
         <>
             {
                 <div className="chat-gradient min-h-screen flex flex-col items-center justify-center px-4">
-                    <h2 className="text-4xl md:text-6xl font-bold text-center text-white mb-6 tracking-tight">
-                        Welcome To{' '}
-                        <span className="text-indigo-400">Zingy</span>
-                    </h2>
+                    <div className="flex items-center justify-center gap-2 mb-6">
+                        <h2 className="text-4xl md:text-6xl font-bold text-center text-white tracking-tight">
+                            Welcome To{' '}
+                            <span className="text-indigo-400">Zingy</span>
+                        </h2>
+                        <button
+                            onClick={() => setShowServerModal(true)}
+                            className="flex h-10 w-10 bg-white/5 hover:bg-indigo-500/20 items-center justify-center cursor-pointer rounded-xl transition-all duration-200"
+                            title="Server Settings"
+                        >
+                            <GearIcon
+                                strokeWidth={1}
+                                className="min-w-5 min-h-5 text-slate-400 hover:text-indigo-400 transition-colors"
+                            />
+                        </button>
+                    </div>
                     <img
                         className="rounded-full mx-auto w-20 h-20 mb-8 ring-4 ring-indigo-500/30"
                         src={logo}
@@ -139,6 +156,48 @@ export const LoginPage = () => {
                             <InfoCircledIcon />
                             Login Successful
                         </p>
+                    )}
+
+                    {showServerModal && (
+                        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+                            <div className="bg-slate-800 border border-white/10 rounded-xl p-6 w-96 shadow-xl">
+                                <h2 className="text-lg font-semibold text-white mb-2">
+                                    Server Configuration
+                                </h2>
+                                <p className="text-sm text-slate-400 mb-4">
+                                    Set the backend server URL for the
+                                    application
+                                </p>
+                                <input
+                                    type="text"
+                                    value={tempUrl}
+                                    onChange={(e) => setTempUrl(e.target.value)}
+                                    placeholder="http://localhost:3000"
+                                    className="w-full px-3 py-2 bg-slate-700 border border-white/10 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 mb-4"
+                                />
+                                <div className="flex gap-3 justify-end">
+                                    <button
+                                        onClick={() => {
+                                            setTempUrl(serverUrl);
+                                            setShowServerModal(false);
+                                        }}
+                                        className="px-4 py-2 rounded-lg text-slate-300 hover:bg-slate-700 transition-colors"
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        onClick={() => {
+                                            dispatch(setServerUrl(tempUrl));
+                                            recreateSocket();
+                                            setShowServerModal(false);
+                                        }}
+                                        className="px-4 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 transition-colors"
+                                    >
+                                        Save
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
                     )}
                 </div>
             }

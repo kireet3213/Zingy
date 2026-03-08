@@ -8,7 +8,9 @@ const getSocketUrl = (): string => {
     if (import.meta.env.PROD) {
         return '';
     }
-    return localStorage.getItem('serverUrl') || import.meta.env.VITE_API_URL || '';
+    return (
+        localStorage.getItem('serverUrl') || import.meta.env.VITE_API_URL || ''
+    );
 };
 
 let socketInstance: Socket<ServerToClientEvents, ClientToServerEvents>;
@@ -22,12 +24,16 @@ const createSocket = (): Socket<ServerToClientEvents, ClientToServerEvents> => {
         upgrade: true,
         reconnectionDelay: 1000,
         reconnectionDelayMax: 5000,
+        extraHeaders: {
+            'ngrok-skip-browser-warning': 'true',
+        },
     });
 };
 
 socketInstance = createSocket();
 
-export const socket: Socket<ServerToClientEvents, ClientToServerEvents> = socketInstance;
+export const socket: Socket<ServerToClientEvents, ClientToServerEvents> =
+    socketInstance;
 
 export const recreateSocket = () => {
     socketInstance?.close();

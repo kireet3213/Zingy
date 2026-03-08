@@ -1,7 +1,8 @@
 import axios, { AxiosRequestConfig } from 'axios';
 
 const getAxiosInstance = () => {
-    const serverUrl = localStorage.getItem('serverUrl') || import.meta.env.VITE_API_URL || '';
+    const serverUrl =
+        localStorage.getItem('serverUrl') || import.meta.env.VITE_API_URL || '';
     const instance = axios.create({
         baseURL: `${serverUrl}/api`,
         timeout: 2000,
