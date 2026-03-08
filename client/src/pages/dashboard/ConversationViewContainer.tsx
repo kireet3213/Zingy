@@ -1,11 +1,21 @@
 import { PaperPlaneIcon } from '@radix-ui/react-icons';
-import { useParams } from 'react-router-dom';
-import { useCallback, useContext, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { socket } from '../../socket';
 import { AcknowledgementCallback, Message } from '@shared-types/socket';
-import { ConversationContext } from './ConversationContext';
 import { MessageBox } from './MessageBox';
-import { get, post } from '../../helpers/axios-client.ts';
+import { useAppDispatch, useAppSelector } from '../../store/hooks.ts';
+import { selectCurrentUser } from '../auth/authSlice.ts';
+import {
+    selectSelectedConversationUser,
+    setConversationIdForUser,
+} from './conversationSlice.ts';
+import { appendMessageForUser, setMessagesForUser } from './messageSlice.ts';
+import {
+    mapApiMessageToSocketMessage,
+    useGetConversationMessagesQuery,
+    useResolveDirectConversationMutation,
+    useSendConversationMessageMutation,
+} from '../../apiSlice.ts';
 
 const sendMessageTone = new Audio('/happy-pop.mp3');
 
@@ -26,52 +36,49 @@ const acknowledgementCallback: AcknowledgementCallback = (
 };
 
 export function ConversationViewContainer() {
-    const { conversation_id } = useParams<{ conversation_id: string }>();
-
+    const dispatch = useAppDispatch();
+    const authUser = useAppSelector(selectCurrentUser);
+    const selectedUser = useAppSelector(selectSelectedConversationUser);
     const [currentMessage, setCurrentMessage] = useState('');
     const sendMessageFieldRef = useRef<HTMLTextAreaElement>(null);
     const messageBoxRef = useRef<HTMLDivElement>(null);
-    const { conversationUsers, setConversationUsers } =
-        useContext(ConversationContext);
-    const selectedUser = conversationUsers.find(
-        (conversationUser) => conversationUser.id === conversation_id
+    const messages = useAppSelector((state) =>
+        selectedUser ? (state.messages.byUserId[selectedUser.id] ?? []) : []
     );
 
-    type MessageApiPayload = {
-        id: string;
-        text: string;
-        createdAt: string;
-        updatedAt: string;
-        sender: {
-            id: string;
-            username: string;
-        };
-    };
+    const [resolveDirectConversation] = useResolveDirectConversationMutation();
+    const [sendConversationMessage] = useSendConversationMessageMutation();
+
+    const { data: messagesResponse } = useGetConversationMessagesQuery(
+        {
+            conversationId: selectedUser?.conversationId ?? 0,
+            page: 1,
+            perPage: 100,
+        },
+        {
+            skip: !selectedUser?.conversationId,
+            refetchOnMountOrArgChange: true,
+        }
+    );
 
     const ensureConversationId = useCallback(async (): Promise<
         number | null
     > => {
-        if (!conversation_id) return null;
+        if (!selectedUser) return null;
 
         const existingConversationId = selectedUser?.conversationId;
         if (existingConversationId) return existingConversationId;
 
         try {
-            const response = await post<null>(
-                `/conversations/direct/${conversation_id}`,
-                null
-            );
-            const data = response.data as {
-                success: boolean;
-                conversationId: number;
-            };
+            const data = await resolveDirectConversation({
+                userId: selectedUser.id,
+            }).unwrap();
             if (!data?.conversationId) return null;
-            setConversationUsers((prev) =>
-                prev.map((user) =>
-                    user.id === conversation_id
-                        ? { ...user, conversationId: data.conversationId }
-                        : user
-                )
+            dispatch(
+                setConversationIdForUser({
+                    userId: selectedUser.id,
+                    conversationId: data.conversationId,
+                })
             );
             return data.conversationId;
         } catch (error) {
@@ -79,72 +86,32 @@ export function ConversationViewContainer() {
             console.error('Failed to resolve conversation id', error);
             return null;
         }
-    }, [conversation_id, selectedUser?.conversationId, setConversationUsers]);
+    }, [dispatch, resolveDirectConversation, selectedUser]);
 
     useEffect(() => {
         if (messageBoxRef.current) {
             messageBoxRef.current.scrollTop =
                 messageBoxRef.current.scrollHeight;
         }
-    }, [selectedUser?.messages]);
+    }, [messages]);
 
     useEffect(() => {
-        if (!conversation_id) return;
-
-        const loadMessages = async () => {
-            const conversationId =
-                selectedUser?.conversationId || (await ensureConversationId());
-            if (!conversationId) return;
-            try {
-                const response = await get(
-                    `/conversations/${conversationId}/messages`,
-                    {
-                        params: {
-                            page: 1,
-                            perPage: 100,
-                        },
-                    }
-                );
-                const payload = response.data as {
-                    success: boolean;
-                    messages: MessageApiPayload[];
-                };
-
-                const mappedMessages: Message[] = payload.messages.map(
-                    (messagePayload) => ({
-                        id: messagePayload.id,
-                        createdAt: messagePayload.createdAt,
-                        updatedAt: messagePayload.updatedAt,
-                        text: messagePayload.text,
-                        to: conversation_id,
-                        fromSelf: messagePayload.sender.id !== conversation_id,
-                    })
-                );
-
-                setConversationUsers((prev) =>
-                    prev.map((user) =>
-                        user.id === conversation_id
-                            ? {
-                                  ...user,
-                                  messages: mappedMessages,
-                                  unseenMessageCount: 0,
-                              }
-                            : user
-                    )
-                );
-            } catch (error) {
-                // eslint-disable-next-line no-console
-                console.error('Failed to fetch messages', error);
-            }
-        };
-
-        void loadMessages();
-    }, [
-        selectedUser?.conversationId,
-        conversation_id,
-        setConversationUsers,
-        ensureConversationId,
-    ]);
+        if (!selectedUser?.id || !messagesResponse?.messages) return;
+        const mappedMessages: Message[] = messagesResponse.messages.map(
+            (messagePayload) =>
+                mapApiMessageToSocketMessage(
+                    messagePayload,
+                    authUser?.id,
+                    selectedUser.id
+                )
+        );
+        dispatch(
+            setMessagesForUser({
+                userId: selectedUser.id,
+                messages: mappedMessages,
+            })
+        );
+    }, [authUser?.id, dispatch, messagesResponse, selectedUser?.id]);
 
     async function submitMessage() {
         if (!sendMessageFieldRef.current || !selectedUser) return;
@@ -154,41 +121,24 @@ export function ConversationViewContainer() {
         if (!conversationId) return;
 
         try {
-            const response = await post(
-                `/conversations/${conversationId}/messages`,
-                {
-                    text: currentMessage.trim(),
-                }
+            const data = await sendConversationMessage({
+                conversationId,
+                text: currentMessage.trim(),
+            }).unwrap();
+            const persistedMessage = mapApiMessageToSocketMessage(
+                data.message,
+                authUser?.id,
+                selectedUser.id
             );
-            const data = response.data as {
-                success: boolean;
-                message: MessageApiPayload;
-            };
-            const persistedMessage: Message = {
-                id: data.message.id,
-                createdAt: data.message.createdAt,
-                updatedAt: data.message.updatedAt,
-                text: data.message.text,
-                to: selectedUser.id,
-                fromSelf: true,
-            };
 
             sendMessageTone.currentTime = 0;
             await sendMessageTone.play();
 
-            setConversationUsers((prev) =>
-                prev.map((user) => {
-                    if (user.id !== selectedUser.id) {
-                        return user;
-                    }
-                    const alreadyExists = user.messages.some(
-                        (message) => message.id === persistedMessage.id
-                    );
-                    if (alreadyExists) return user;
-                    return {
-                        ...user,
-                        messages: [...user.messages, persistedMessage],
-                    };
+            dispatch(
+                appendMessageForUser({
+                    userId: selectedUser.id,
+                    message: persistedMessage,
+                    markUnseen: false,
                 })
             );
 
@@ -205,7 +155,6 @@ export function ConversationViewContainer() {
             // eslint-disable-next-line no-console
             console.error('Failed to send message', error);
         }
-
         sendMessageFieldRef.current.value = '';
         setCurrentMessage('');
     }
@@ -216,7 +165,7 @@ export function ConversationViewContainer() {
                 ref={messageBoxRef}
                 className="flex flex-1 min-h-0 flex-col justify-center overflow-auto px-2 md:px-6"
             >
-                <MessageBox messages={selectedUser?.messages || []} />
+                <MessageBox messages={messages} />
             </div>
             <div className="p-2 md:p-4">
                 <div className="relative">

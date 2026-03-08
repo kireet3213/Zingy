@@ -1,12 +1,12 @@
 import * as Form from '@radix-ui/react-form';
 import { useNavigate } from 'react-router-dom';
-import { post } from '../helpers/axios-client';
+import { post } from '../../helpers/axios-client';
 import { useRef, useState } from 'react';
-import { Maybe } from '../types/utility.ts';
+import { Maybe } from '../../types/utility.ts';
 import type { AxiosResponse } from 'axios';
-import { FormErrorValidation } from '../components/FormErrorValidation.tsx';
-import { ErrorValidation } from '../components/ErrorValidation.tsx';
-import logo from '../assets/DALL·E Letter Z Design.webp';
+import { FormErrorValidation } from '../../components/FormErrorValidation.tsx';
+import { ErrorValidation } from '../../components/ErrorValidation.tsx';
+import logo from '../../assets/DALL·E Letter Z Design.webp';
 
 export const RegisterUser = () => {
     const navigate = useNavigate();

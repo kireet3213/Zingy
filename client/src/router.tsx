@@ -1,8 +1,8 @@
 import { createBrowserRouter } from 'react-router-dom';
-import { LoginPage } from './pages/LoginPage';
+import { LoginPage } from './pages/auth/LoginPage';
 import ErrorPage from './pages/ErrorPage';
 import App from './App';
-import { RegisterUser } from './pages/RegisterUser';
+import { RegisterUser } from './pages/auth/RegisterUser';
 import { DashboardRoot } from './pages/dashboard/DashboardRoot';
 import { ConversationViewContainer } from './pages/dashboard/ConversationViewContainer';
 
@@ -27,7 +27,7 @@ export const router = createBrowserRouter([
         element: <DashboardRoot />,
         children: [
             {
-                path: ':conversation_id',
+                index: true,
                 element: <ConversationViewContainer />,
             },
         ],

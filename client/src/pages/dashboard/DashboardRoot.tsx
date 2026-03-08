@@ -1,14 +1,14 @@
 /* eslint-disable no-console */
-import { useContext, useEffect } from 'react';
-import { AuthContext } from '../../AuthContext';
+import { useEffect } from 'react';
 import { ConversationContainer } from './ConversationContainer';
 import { Navigate, Outlet } from 'react-router-dom';
 import { SideBar } from './SideBar';
 import { socket } from '../../socket';
-import { ConversationContextProvider } from './ConversationContextProvider';
+import { useAppSelector } from '../../store/hooks.ts';
+import { selectCurrentUser } from '../auth/authSlice.ts';
 
 export function DashboardRoot() {
-    const { authUser } = useContext(AuthContext);
+    const authUser = useAppSelector(selectCurrentUser);
     // const [isConnected, setIsConnected] = useState(socket.connected);
     // const [socketErrors, setSocketErrors] = useState<Maybe<Error>>();
 
@@ -64,22 +64,20 @@ export function DashboardRoot() {
     }, []);
 
     return (
-        <ConversationContextProvider>
-            <div className="h-screen chat-gradient overflow-hidden">
-                {!authUser ? (
-                    <Navigate to="/"></Navigate>
-                ) : (
-                    <div className="h-full flex flex-col md:flex-row">
-                        <SideBar />
-                        <div className="flex flex-1 min-h-0 flex-col md:flex-row">
-                            <ConversationContainer />
-                            <div className="flex flex-col flex-1 min-h-0 min-w-0">
-                                <Outlet />
-                            </div>
+        <div className="h-screen chat-gradient overflow-hidden">
+            {!authUser ? (
+                <Navigate to="/"></Navigate>
+            ) : (
+                <div className="h-full flex flex-col md:flex-row">
+                    <SideBar />
+                    <div className="flex flex-1 min-h-0 flex-col md:flex-row">
+                        <ConversationContainer />
+                        <div className="flex flex-col flex-1 min-h-0 min-w-0">
+                            <Outlet />
                         </div>
                     </div>
-                )}
-            </div>
-        </ConversationContextProvider>
+                </div>
+            )}
+        </div>
     );
 }
