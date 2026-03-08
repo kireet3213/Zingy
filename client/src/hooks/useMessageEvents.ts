@@ -1,14 +1,17 @@
-import { useContext, useEffect } from 'react';
+import { useEffect } from 'react';
 import { socket } from '../socket.ts';
 import { Message } from '@shared-types/socket.ts';
-import { ConversationContext } from '../pages/dashboard/ConversationContext.tsx';
-import { AuthContext } from '../AuthContext.tsx';
-import { useParams } from 'react-router-dom';
+import { useAppDispatch, useAppSelector } from '../store/hooks.ts';
+import { selectCurrentUser } from '../pages/auth/authSlice.ts';
+import { selectSelectedConversationUserId } from '../pages/dashboard/conversationSlice.ts';
+import { appendMessageForUser } from '../pages/dashboard/messageSlice.ts';
 
 export const useMessageEvents = () => {
-    const { setConversationUsers } = useContext(ConversationContext);
-    const { authUser } = useContext(AuthContext);
-    const { conversation_id } = useParams<{ conversation_id: string }>();
+    const dispatch = useAppDispatch();
+    const authUser = useAppSelector(selectCurrentUser);
+    const selectedConversationUserId = useAppSelector(
+        selectSelectedConversationUserId
+    );
 
     useEffect(() => {
         const handlePrivateMessage = (payload: {
@@ -16,29 +19,18 @@ export const useMessageEvents = () => {
             from: string;
             to: string;
         }) => {
-            setConversationUsers((prev) =>
-                prev.map((user) => {
-                    if (user.id !== payload.from) {
-                        return user;
-                    }
-                    const messageExists = user.messages.some(
-                        (message) => message.id === payload.message.id
-                    );
-                    if (messageExists) {
-                        return user;
-                    }
-                    const newMessage: Message = {
-                        ...payload.message,
-                        fromSelf: false,
-                    };
-                    const unseenIncrement =
-                        conversation_id !== payload.from ? 1 : 0;
-                    return {
-                        ...user,
-                        messages: [...user.messages, newMessage],
-                        unseenMessageCount:
-                            user.unseenMessageCount + unseenIncrement,
-                    };
+            const conversationUserId = payload.from;
+            const isFromSelf = payload.from === authUser?.id;
+            const newMessage: Message = {
+                ...payload.message,
+                fromSelf: isFromSelf,
+            };
+            dispatch(
+                appendMessageForUser({
+                    userId: conversationUserId,
+                    message: newMessage,
+                    markUnseen:
+                        selectedConversationUserId !== conversationUserId,
                 })
             );
         };
@@ -47,5 +39,5 @@ export const useMessageEvents = () => {
         return () => {
             socket.off('private-message', handlePrivateMessage);
         };
-    }, [authUser?.id, setConversationUsers, conversation_id]);
+    }, [authUser?.id, dispatch, selectedConversationUserId]);
 };

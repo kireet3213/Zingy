@@ -13,6 +13,16 @@ interface AuthState {
     errorText?: string;
 }
 
+function getUserFromStorage(): User | null {
+    try {
+        return JSON.parse(
+            localStorage.getItem('auth_user') || 'null'
+        ) as User | null;
+    } catch {
+        return null;
+    }
+}
+
 export const login = createAppAsyncThunk(
     'auth/login',
     async (data: Record<string, FormDataEntryValue>) => {
@@ -33,19 +43,20 @@ export const login = createAppAsyncThunk(
     }
 );
 
+export const logout = createAppAsyncThunk('auth/logout', async () => {
+    localStorage.removeItem('jwt_secret');
+    localStorage.removeItem('auth_user');
+});
+
 const initialState: AuthState = {
-    user: null,
-    status: 'pending',
+    user: getUserFromStorage(),
+    status: 'idle',
 };
 
 const authSlice = createSlice({
     name: 'auth',
     initialState,
-    reducers: {
-        userLogout(state) {
-            state.user = null;
-        },
-    },
+    reducers: {},
     extraReducers: (builder) => {
         builder
             .addCase(login.fulfilled, (state, action) => {
@@ -59,6 +70,11 @@ const authSlice = createSlice({
             })
             .addCase(login.pending, (state) => {
                 state.status = 'pending';
+            })
+            .addCase(logout.fulfilled, (state) => {
+                state.user = null;
+                state.status = 'idle';
+                state.errorText = undefined;
             });
     },
 });

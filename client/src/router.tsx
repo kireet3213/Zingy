@@ -27,7 +27,7 @@ export const router = createBrowserRouter([
         element: <DashboardRoot />,
         children: [
             {
-                path: ':conversation_id',
+                index: true,
                 element: <ConversationViewContainer />,
             },
         ],

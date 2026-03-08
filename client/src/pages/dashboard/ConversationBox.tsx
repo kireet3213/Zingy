@@ -1,9 +1,18 @@
 import { UserConversation } from './types/conversation';
-import { NavLink } from 'react-router-dom';
 import { Maybe } from '../../types/utility';
 import { useMessageEvents } from '../../hooks/useMessageEvents.ts';
 import Tooltip from '../../components/Tooltip.tsx';
 import profilePic from '../../assets/profile.svg';
+import { useAppDispatch, useAppSelector } from '../../store/hooks.ts';
+import {
+    selectConversation,
+    selectSelectedConversationUserId,
+} from './conversationSlice.ts';
+import {
+    resetUnseenForUser,
+    selectMessagesByUserId,
+    selectUnseenCountByUserId,
+} from './messageSlice.ts';
 
 type ConversationBoxProps = {
     conversationUsers: Maybe<UserConversation[]>;
@@ -27,26 +36,32 @@ const UserComponent = ({
 }: {
     conversation: UserConversation;
 }) => {
-    const {
-        senderName,
-        unseenMessageCount,
-        id,
-        isConnected = false,
-        messages,
-    } = conversation;
+    const dispatch = useAppDispatch();
+    const selectedConversationUserId = useAppSelector(
+        selectSelectedConversationUserId
+    );
+    const messages = useAppSelector((state) =>
+        selectMessagesByUserId(state, conversation.id)
+    );
+    const unseenMessageCount = useAppSelector((state) =>
+        selectUnseenCountByUserId(state, conversation.id)
+    );
+    const { senderName, id, isConnected = false } = conversation;
     const lastMessageTime = formatTime(messages?.at(-1)?.createdAt);
     const lastMessage = messages.at(-1)?.text || '';
 
     return (
-        <NavLink
-            to={`/dashboard/${id}`}
-            className={({ isActive }) => {
-                return `px-3 py-3 hover:bg-white/5 transition-all duration-200 ${
-                    isActive
-                        ? 'bg-indigo-500/10 border-l-2 border-l-indigo-500'
-                        : 'border-l-2 border-l-transparent'
-                }`;
+        <button
+            type="button"
+            onClick={() => {
+                dispatch(selectConversation(id));
+                dispatch(resetUnseenForUser(id));
             }}
+            className={`px-3 py-3 hover:bg-white/5 transition-all duration-200 text-left w-full ${
+                selectedConversationUserId === id
+                    ? 'bg-indigo-500/10 border-l-2 border-l-indigo-500'
+                    : 'border-l-2 border-l-transparent'
+            }`}
         >
             <div className="flex items-center gap-3">
                 <SenderImage
@@ -64,7 +79,7 @@ const UserComponent = ({
                     />
                 </div>
             </div>
-        </NavLink>
+        </button>
     );
 };
 

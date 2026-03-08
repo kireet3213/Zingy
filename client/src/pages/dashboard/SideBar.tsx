@@ -1,6 +1,4 @@
 import { GearIcon } from '@radix-ui/react-icons';
-import { useContext } from 'react';
-import { AuthContext } from '../../AuthContext';
 import { socket } from '../../socket';
 import {
     DropdownContent,
@@ -10,9 +8,13 @@ import {
     DropdownTrigger,
 } from '../../components/Dropdown.tsx';
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
+import { useAppDispatch } from '../../store/hooks.ts';
+import { logout } from '../auth/authSlice.ts';
+import { clearConversations } from './conversationSlice.ts';
+import { clearMessages } from './messageSlice.ts';
 
 export const SideBar = () => {
-    const { setAuthUser } = useContext(AuthContext);
+    const dispatch = useAppDispatch();
     return (
         <div className="flex md:flex-col-reverse flex-row items-center justify-between md:justify-end bg-slate-900/80 border-b md:border-b-0 md:border-r border-white/5 px-3 py-2 md:px-0 md:py-0 md:w-16 shrink-0">
             <span className="text-indigo-400 font-bold text-lg md:hidden">
@@ -48,9 +50,10 @@ export const SideBar = () => {
                         </DropdownItem>
                         <DropdownItem
                             className="cursor-pointer hover:bg-red-500/20 px-3 py-2 text-red-400 text-sm hover:outline-none rounded-lg transition-colors"
-                            onClick={() => {
-                                localStorage.clear();
-                                if (setAuthUser) setAuthUser(null);
+                            onClick={async () => {
+                                await dispatch(logout());
+                                dispatch(clearConversations());
+                                dispatch(clearMessages());
                                 socket.close();
                             }}
                         >
