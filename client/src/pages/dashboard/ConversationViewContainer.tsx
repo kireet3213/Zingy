@@ -163,7 +163,7 @@ export function ConversationViewContainer() {
         <div className="relative flex h-full min-h-0 flex-col bg-transparent">
             <div
                 ref={messageBoxRef}
-                className="flex flex-1 min-h-0 flex-col justify-center overflow-auto px-2 md:px-6"
+                className="flex flex-1 min-h-0 flex-col overflow-auto px-2 md:px-6"
             >
                 <MessageBox messages={messages} />
             </div>

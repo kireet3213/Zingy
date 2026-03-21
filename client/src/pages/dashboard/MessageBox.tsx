@@ -25,7 +25,7 @@ export const MessageBox = forwardRef<HTMLDivElement, MessageBoxProps>(
         return (
             <div
                 ref={ref}
-                className="flex flex-col gap-2 p-3 md:p-4 flex-1 justify-end"
+                className="flex flex-col gap-2 p-3 md:p-4 mt-auto"
             >
                 {messages?.map((message) => (
                     <div
