@@ -91,7 +91,7 @@ pnpm --filter zingy-server migration:refresh
 Seed data:
 
 ```bash
-pnpm --filter zingy-server seed
+pnpm --filter zingy-server seed --seedUsers
 ```
 
 ## Scripts
