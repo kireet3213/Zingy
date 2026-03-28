@@ -36,6 +36,34 @@ type ResolveDirectConversationRequest = {
     userId: string;
 };
 
+type ConversationPeer = {
+    id: string;
+    username: string;
+    userProfile: {
+        id: string;
+        profileUrl: string | null;
+        about: string | null;
+    } | null;
+};
+
+type ConversationLastMessage = {
+    id: string;
+    text: string;
+    senderId: string;
+    createdAt: string;
+};
+
+export type UserConversationApiPayload = {
+    conversationId: number;
+    peer: ConversationPeer | null;
+    lastMessage: ConversationLastMessage | null;
+};
+
+type GetUserConversationsResponse = {
+    success: boolean;
+    conversations: UserConversationApiPayload[];
+};
+
 export const apiSlice = createApi({
     reducerPath: 'api',
     baseQuery: fetchBaseQuery({
@@ -82,6 +110,12 @@ export const apiSlice = createApi({
                 method: 'POST',
             }),
         }),
+        getUserConversations: builder.query<
+            GetUserConversationsResponse,
+            void
+        >({
+            query: () => 'conversations',
+        }),
     }),
 });
 
@@ -89,6 +123,7 @@ export const {
     useGetConversationMessagesQuery,
     useSendConversationMessageMutation,
     useResolveDirectConversationMutation,
+    useGetUserConversationsQuery,
 } = apiSlice;
 
 export function mapApiMessageToSocketMessage(

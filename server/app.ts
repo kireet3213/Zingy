@@ -129,6 +129,7 @@ io.on('connection', (socket) => {
                 message,
                 from: currentUser?.id,
                 to: message.to,
+                fromUser: currentUser ?? null,
             });
             acknowledgementCallback('acknowledged', null);
             return;
@@ -138,6 +139,7 @@ io.on('connection', (socket) => {
             message,
             from: currentUser?.id as string,
             to: message.to as string,
+            fromUser: currentUser ?? null,
         });
         acknowledgementCallback('acknowledged', null);
     });

@@ -37,9 +37,12 @@ const conversationSlice = createSlice({
                 return;
             }
 
+            const existing = state.users[existingIndex];
             state.users[existingIndex] = {
-                ...state.users[existingIndex],
+                ...existing,
                 ...action.payload,
+                conversationId:
+                    action.payload.conversationId ?? existing.conversationId,
             };
         },
         setConversationIdForUser(

@@ -27,7 +27,7 @@ export type Message = {
 export type ServerToClientEvents = {
     ping: (data: string) => void;
     "connected-users": (data: { id: string; user: User, isConnected: boolean }[]) => void;
-    'private-message': (data: { message: Message; from: string, to: string }) => void;
+    'private-message': (data: { message: Message; from: string; to: string; fromUser: User | null }) => void;
     'new-user-connected': (data: { id: string; user: User }) => void;
     "user-disconnected": (data: string) => void;
 };

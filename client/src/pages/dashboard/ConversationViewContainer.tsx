@@ -89,6 +89,12 @@ export function ConversationViewContainer() {
     }, [dispatch, resolveDirectConversation, selectedUser]);
 
     useEffect(() => {
+        if (selectedUser && !selectedUser.conversationId) {
+            void ensureConversationId();
+        }
+    }, [selectedUser, ensureConversationId]);
+
+    useEffect(() => {
         if (messageBoxRef.current) {
             messageBoxRef.current.scrollTop =
                 messageBoxRef.current.scrollHeight;
