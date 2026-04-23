@@ -1,5 +1,5 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { RootState } from '../../store/store';
+import { RootState} from '../../store/store';
 import { UserConversation } from './types/conversation';
 
 type ConversationState = {
@@ -26,6 +26,7 @@ const conversationSlice = createSlice({
             }
         },
         upsertConversationUser(state, action: PayloadAction<UserConversation>) {
+
             const existingIndex = state.users.findIndex(
                 (user) => user.id === action.payload.id
             );
@@ -44,6 +45,7 @@ const conversationSlice = createSlice({
                 conversationId:
                     action.payload.conversationId ?? existing.conversationId,
             };
+
         },
         setConversationIdForUser(
             state,
@@ -90,7 +92,7 @@ export const selectConversationUsers = (state: RootState) =>
 export const selectSelectedConversationUserId = (state: RootState) =>
     state.conversations.selectedConversationUserId;
 
-export const selectSelectedConversationUser = (state: RootState) => {
+export const selectSelectedConversationUser = (state: RootState): UserConversation | null => {
     const selectedUserId = state.conversations.selectedConversationUserId;
     if (!selectedUserId) return null;
     return (

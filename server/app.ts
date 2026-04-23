@@ -94,14 +94,14 @@ const userSockets = new Map<
     { user: User; id: string; isConnected: boolean }
 >();
 
-io.on('connection', (socket) => {
+io.on('connection', async (socket) => {
     // console.log("session store",sessionStore);
 
     console.log('Socket connected: ', socket.id);
     const currentUser: Maybe<User> = socket.handshake.auth.user;
 
     if (currentUser) {
-        socket.join(currentUser.id);
+        await socket.join(currentUser.id);
         userSockets.set(currentUser.id, {
             user: currentUser,
             id: socket.id,
@@ -173,5 +173,32 @@ io.on('connection', (socket) => {
                 });
             }
         }
+    });
+
+    socket.on('video-call', (payload, acknowledgementCallback) => {
+        console.log('video-call', payload);
+        const currentUser = socket.handshake.auth.user as User;
+        socket.to(payload.peer.id).emit('video-offer', {
+            sdp: payload.sdp,
+            peer: currentUser,
+        });
+        acknowledgementCallback('acknowledged', null);
+    });
+
+    socket.on('video-answer', (payload) => {
+        console.log('video-answer', payload);
+        socket.to(payload.peer.id).emit('video-answer', {
+            sdp: payload.sdp,
+            peer: socket.handshake.auth.user as User,
+        });
+    });
+
+    socket.on('new-ice-candidate', (payload) => {
+        console.log('new-ice-candidate', payload,socket.handshake.auth.user.id);
+        if (!payload?.peerId) return;
+        socket.to(payload.peerId).emit('new-ice-candidate', {
+            candidate: payload.candidate,
+            peerId: socket.handshake.auth.user.id,
+        });
     });
 });

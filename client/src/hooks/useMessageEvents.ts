@@ -25,6 +25,7 @@ export const useMessageEvents = () => {
             to: string;
             fromUser: User | null;
         }) => {
+            console.log('Received private message:', payload);
             const conversationUserId = payload.from;
             const isFromSelf = payload.from === authUser?.id;
 
