@@ -205,4 +205,11 @@ io.on('connection', async (socket) => {
             peerId: socket.handshake.auth.user.id,
         });
     });
+
+    socket.on('video-hangup', (payload) => {
+        if (!payload?.peerId) return;
+        socket.to(payload.peerId).emit('video-hangup', {
+            peerId: socket.handshake.auth.user.id,
+        });
+    });
 });

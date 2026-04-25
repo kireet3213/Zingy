@@ -13,7 +13,7 @@ import {
     type UserConversationApiPayload,
 } from '../../apiSlice.ts';
 import { UserConversation } from './types/conversation.ts';
-import { Video } from 'lucide-react';
+import { PhoneOff, Video } from 'lucide-react';
 import { socket } from '../../socket';
 import { User } from '@shared-types/socket.ts';
 
@@ -48,7 +48,7 @@ export function ConversationContainer() {
     const { data: conversationsData } = useGetUserConversationsQuery();
     useUserEvents();
 
-    const remotePeer = useRef<User>(null);
+    const activePeerId = useRef<string | null>(null);
     const localIceCandidates = useRef<RTCIceCandidate[]>([]);
     const attachVideoStream = (
         videoElement: HTMLVideoElement | null,
@@ -58,9 +58,8 @@ export function ConversationContainer() {
         videoElement.srcObject = stream;
     };
     const getLocalMediaStream = useCallback(async () => {
-        const stream = await navigator.mediaDevices.getUserMedia(
-            mediaConstraints
-        );
+        const stream =
+            await navigator.mediaDevices.getUserMedia(mediaConstraints);
         attachVideoStream(localVideoRef.current, stream);
         return stream;
     }, []);
@@ -82,17 +81,60 @@ export function ConversationContainer() {
         remoteStream.current.addTrack(track);
     }, []);
 
-        const createPeerConnection = useCallback(async function (peerId: string) {
-        setCallActive(true);
-      
+    const cleanup = useCallback(async (notifyPeer = false) => {
+        const peerId = activePeerId.current;
+        if (notifyPeer && peerId) {
+            socket.emit('video-hangup', { peerId });
+        }
+
+        const localVideo = localVideoRef.current?.srcObject;
+        if (localVideo instanceof MediaStream) {
+            localVideo.getTracks().forEach((track) => {
+                track.stop();
+            });
+        }
+
+        const remoteVideo = remoteVideoRef.current?.srcObject;
+        if (remoteVideo instanceof MediaStream) {
+            remoteVideo.getTracks().forEach((track) => {
+                track.stop();
+            });
+        }
+
+        if (localPeerConnection.current) {
+            localPeerConnection.current.onicecandidate = null;
+            localPeerConnection.current.oniceconnectionstatechange = null;
+            localPeerConnection.current.ontrack = null;
+            localPeerConnection.current.close();
+            localPeerConnection.current = null;
+        }
+
+        if (localVideoRef.current) {
+            localVideoRef.current.srcObject = null;
+        }
+        if (remoteVideoRef.current) {
+            remoteVideoRef.current.srcObject = null;
+        }
+
+        remoteStream.current = null;
+        activePeerId.current = null;
+        localIceCandidates.current = [];
+        setCallActive(false);
+    }, []);
+
+    const createPeerConnection = useCallback(
+        async function (peerId: string) {
+            setCallActive(true);
+            activePeerId.current = peerId;
+
             try {
                 const peerConnection = new RTCPeerConnection({
                     iceServers: rtcIceServers,
                 });
                 const localPC = (localPeerConnection.current = peerConnection);
-                
+
                 localPC.onicecandidate = async (event) => {
-                    console.log("new ice candidate",event.candidate);
+                    console.log('new ice candidate', event.candidate);
 
                     if (event.candidate) {
                         socket.emit('new-ice-candidate', {
@@ -101,8 +143,15 @@ export function ConversationContainer() {
                         });
                     }
                 };
-                localPC.oniceconnectionstatechange = () => {
+                localPC.oniceconnectionstatechange = async () => {
                     console.log('ICE state:', localPC.iceConnectionState);
+                    switch (localPC.iceConnectionState) {
+                        case 'closed':
+                        case 'failed':
+                        case 'disconnected':
+                            await cleanup(false);
+                            break;
+                    }
                 };
                 localPC.ontrack = (event) => {
                     console.log('received track');
@@ -114,7 +163,9 @@ export function ConversationContainer() {
                 console.log('error', err);
             }
             return null;
-    },[attachRemoteTrack])
+        },
+        [attachRemoteTrack, cleanup]
+    );
 
     useEffect(() => {
         if (!conversationsData?.conversations || !authUser) return;
@@ -139,7 +190,7 @@ export function ConversationContainer() {
             peer: User;
         }) {
             try {
-                remotePeer.current = message.peer;
+                activePeerId.current = message.peer.id;
                 const peerConnection = await createPeerConnection(
                     message.peer.id
                 );
@@ -183,6 +234,7 @@ export function ConversationContainer() {
         }) {
             try {
                 const remoteDesc = new RTCSessionDescription(data.sdp);
+                activePeerId.current = data.peer.id;
 
                 if (localPeerConnection.current) {
                     if (
@@ -231,33 +283,25 @@ export function ConversationContainer() {
             }
         }
 
+        async function handleVideoHangup() {
+            console.log('video hangup..');
+
+            await cleanup(false);
+        }
+
         socket.on('video-offer', handleVideOffer);
         socket.on('new-ice-candidate', handleNewIceCandidate);
         socket.on('video-answer', handleVideoAnswer);
+        socket.on('video-hangup', handleVideoHangup);
 
         return () => {
             socket.off('video-offer', handleVideOffer);
             socket.off('new-ice-candidate', handleNewIceCandidate);
             socket.off('video-answer', handleVideoAnswer);
+            socket.off('video-hangup', handleVideoHangup);
         };
-    }, [addLocalTracks, createPeerConnection]);
+    }, [addLocalTracks, cleanup, createPeerConnection]);
 
-
-    async function cleanup() {
-        if (localPeerConnection.current) {
-            localPeerConnection.current.onicecandidate = null;
-            localPeerConnection.current.oniceconnectionstatechange = null;
-            localPeerConnection.current.ontrack = null;
-            await localPeerConnection.current.setLocalDescription(undefined);
-            localPeerConnection.current = null;
-        }
-        if (localVideoRef.current) {
-            localVideoRef.current.srcObject = null;
-        }
-        if (remoteVideoRef.current) {
-            remoteVideoRef.current.srcObject = null;
-        }
-    }
     return (
         <div className="relative flex min-h-0 flex-col bg-slate-900/60 border-r border-white/5 overflow-y-auto w-full md:w-80 md:shrink-0 max-h-[35vh] md:max-h-none">
             <div className="relative z-10 px-4 py-3 border-b border-white/5 flex items-center gap-3">
@@ -280,26 +324,24 @@ export function ConversationContainer() {
                                 return;
                             } else if (!callActive) {
                                 if (!selectedConversationUser?.id) return;
-                                const peerConnection = await createPeerConnection(
-                                    selectedConversationUser.id
-                                );
+                                const peerConnection =
+                                    await createPeerConnection(
+                                        selectedConversationUser.id
+                                    );
                                 if (!peerConnection) return;
-                                
+
                                 await addLocalTracks(peerConnection); //order important: add tracks to peer before creating offer
 
                                 const offer =
-                                await peerConnection.createOffer();
-                                await peerConnection.setLocalDescription(
-                                    offer
-                                );
+                                    await peerConnection.createOffer();
+                                await peerConnection.setLocalDescription(offer);
                                 console.log(selectedConversationUser);
-                                
+
                                 if (selectedConversationUser) {
                                     socket.emit(
                                         'video-call',
                                         {
-                                            sdp: peerConnection
-                                                .localDescription!,
+                                            sdp: peerConnection.localDescription!,
                                             peer: selectedConversationUser,
                                         },
                                         (ack) => {
@@ -308,8 +350,7 @@ export function ConversationContainer() {
                                     );
                                 }
                             } else {
-                                if (localVideoRef.current)
-                                    localVideoRef.current.srcObject = null;
+                                await cleanup(true);
                             }
                         }}
                     >
@@ -318,38 +359,35 @@ export function ConversationContainer() {
                 </div>
             </div>
             <ConversationBox conversationUsers={conversationUsers} />
-            <video
-                style={{
-                    position: 'absolute',
-                    top: '57px',
-                    height: '159px',
-                    width: '180px',
-                    background: '#afbfcd',
-                    zIndex: 1,
-                    right: 0,
-                    pointerEvents: 'none',
-                }}
-                autoPlay
-                muted
-                playsInline
-                ref={localVideoRef}
-            ></video>
-            <video
-                style={{
-                    position: 'absolute',
-                    top: '224px',
-                    height: '159px',
-                    width: '180px',
-                    background: '#8fcbff',
-                    zIndex: 1,
-                    right: 0,
-                    pointerEvents: 'none',
-                }}
-                autoPlay
-                muted
-                playsInline
-                ref={remoteVideoRef}
-            ></video>
+            {callActive && (
+                <div className="fixed inset-0 z-50 bg-black">
+                    <video
+                        className="h-full w-full object-cover bg-black"
+                        autoPlay
+                        playsInline
+                        ref={remoteVideoRef}
+                    ></video>
+                    <div className="pointer-events-none absolute inset-x-0 bottom-0 flex flex-col items-center gap-4 bg-gradient-to-t from-black/80 via-black/35 to-transparent px-6 pb-8 pt-24">
+                        <video
+                            className="pointer-events-auto h-36 w-56 rounded-2xl border border-white/15 bg-slate-950 object-cover shadow-2xl"
+                            autoPlay
+                            muted
+                            playsInline
+                            ref={localVideoRef}
+                        ></video>
+                        <button
+                            type="button"
+                            className="pointer-events-auto inline-flex items-center gap-2 rounded-full bg-red-600 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-red-950/40"
+                            onClick={async () => {
+                                await cleanup(true);
+                            }}
+                        >
+                            <PhoneOff size={18} />
+                            Hang up
+                        </button>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

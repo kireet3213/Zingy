@@ -48,6 +48,7 @@ export type ServerToClientEvents = {
     'video-offer': VideoOffer;
     'video-answer': VideoAnswer;
     "new-ice-candidate": NewIceCandidateClient;
+    'video-hangup': VideoHangup;
 };
 
 export type ClientToServerEvents = {
@@ -58,6 +59,7 @@ export type ClientToServerEvents = {
     'video-call': VideoCallFunction;
     'video-answer': VideoAnswer;
     'new-ice-candidate': NewIceCandidateClient;
+    'video-hangup': VideoHangup;
 };
 
 export type AcknowledgementCallback = (
@@ -88,5 +90,9 @@ export type VideoAnswer = (data: {
 
 type NewIceCandidateClient = (data: {
     candidate: RTCIceCandidateInit;
+    peerId: string;
+}) => void;
+
+type VideoHangup = (data: {
     peerId: string;
 }) => void;
