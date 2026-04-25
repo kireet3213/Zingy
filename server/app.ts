@@ -194,7 +194,11 @@ io.on('connection', async (socket) => {
     });
 
     socket.on('new-ice-candidate', (payload) => {
-        console.log('new-ice-candidate', payload,socket.handshake.auth.user.id);
+        console.log(
+            'new-ice-candidate',
+            payload,
+            socket.handshake.auth.user.id
+        );
         if (!payload?.peerId) return;
         socket.to(payload.peerId).emit('new-ice-candidate', {
             candidate: payload.candidate,

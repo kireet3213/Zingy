@@ -48,9 +48,7 @@ export const getUserConversations: RequestHandler = catchAsync(
             },
         });
 
-        const peerUserIds = [
-            ...new Set(peerMemberships.map((m) => m.userId)),
-        ];
+        const peerUserIds = [...new Set(peerMemberships.map((m) => m.userId))];
         const peerUsers = await User.scope([
             'defaultScope',
             'withoutPassword',
@@ -81,8 +79,7 @@ export const getUserConversations: RequestHandler = catchAsync(
         }
 
         const conversations = conversationIds.map((conversationId) => {
-            const peers =
-                peerByConversation.get(String(conversationId)) ?? [];
+            const peers = peerByConversation.get(String(conversationId)) ?? [];
             const peerUser =
                 peers.length > 0 ? peerUserMap.get(peers[0].userId) : null;
             const lastMessage = lastMessageMap.get(conversationId);
@@ -96,8 +93,7 @@ export const getUserConversations: RequestHandler = catchAsync(
                           userProfile: peerUser.userProfile
                               ? {
                                     id: peerUser.userProfile.id,
-                                    profileUrl:
-                                        peerUser.userProfile.profileUrl,
+                                    profileUrl: peerUser.userProfile.profileUrl,
                                     about: peerUser.userProfile.about,
                                 }
                               : null,
