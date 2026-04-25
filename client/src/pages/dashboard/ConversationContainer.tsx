@@ -42,7 +42,6 @@ export function ConversationContainer() {
     const remoteVideoRef = useRef<HTMLVideoElement>(null);
 
     const remoteStream = useRef<MediaStream | null>(null);
-    const isRemoteDescSetOnAnswer = useRef<boolean>(false);
     const [callActive, setCallActive] = useState<boolean>(false);
     const localPeerConnection = useRef<RTCPeerConnection | null>(null);
 
@@ -58,6 +57,23 @@ export function ConversationContainer() {
         if (!videoElement) return;
         videoElement.srcObject = stream;
     };
+    const getLocalMediaStream = useCallback(async () => {
+        const stream = await navigator.mediaDevices.getUserMedia(
+            mediaConstraints
+        );
+        attachVideoStream(localVideoRef.current, stream);
+        return stream;
+    }, []);
+
+    const addLocalTracks = useCallback(
+        async (peerConnection: RTCPeerConnection) => {
+            const stream = await getLocalMediaStream();
+            stream.getTracks().forEach((track) => {
+                peerConnection.addTrack(track, stream);
+            });
+        },
+        [getLocalMediaStream]
+    );
     const attachRemoteTrack = useCallback((track: MediaStreamTrack) => {
         if (!remoteStream.current) {
             remoteStream.current = new MediaStream();
@@ -65,6 +81,40 @@ export function ConversationContainer() {
         }
         remoteStream.current.addTrack(track);
     }, []);
+
+        const createPeerConnection = useCallback(async function (peerId: string) {
+        setCallActive(true);
+      
+            try {
+                const peerConnection = new RTCPeerConnection({
+                    iceServers: rtcIceServers,
+                });
+                const localPC = (localPeerConnection.current = peerConnection);
+                
+                localPC.onicecandidate = async (event) => {
+                    console.log("new ice candidate",event.candidate);
+
+                    if (event.candidate) {
+                        socket.emit('new-ice-candidate', {
+                            peerId,
+                            candidate: event.candidate,
+                        });
+                    }
+                };
+                localPC.oniceconnectionstatechange = () => {
+                    console.log('ICE state:', localPC.iceConnectionState);
+                };
+                localPC.ontrack = (event) => {
+                    console.log('received track');
+
+                    attachRemoteTrack(event.track);
+                };
+                return localPC;
+            } catch (err) {
+                console.log('error', err);
+            }
+            return null;
+    },[attachRemoteTrack])
 
     useEffect(() => {
         if (!conversationsData?.conversations || !authUser) return;
@@ -84,75 +134,53 @@ export function ConversationContainer() {
     }, [conversationsData, authUser, dispatch]);
 
     useEffect(() => {
-        socket.on('video-offer', async (message) => {
+        async function handleVideOffer(message: {
+            sdp: RTCSessionDescriptionInit;
+            peer: User;
+        }) {
             try {
                 remotePeer.current = message.peer;
-                const peerConnection = new RTCPeerConnection({
-                    iceServers: rtcIceServers,
-                });
-                localPeerConnection.current = peerConnection;
+                const peerConnection = await createPeerConnection(
+                    message.peer.id
+                );
 
-                peerConnection.ontrack = (event) => {
-                    attachRemoteTrack(event.track);
-                };
-                peerConnection.onicecandidate = (event) => {
-                    if (event.candidate) {
-                        if (!remotePeer.current) return;
-
-                        socket.emit('new-ice-candidate', {
-                            peerId: remotePeer.current.id,
-                            candidate: event.candidate,
-                        });
-                    }
-                };
-
-                if (peerConnection.signalingState !== 'stable') {
+                if (peerConnection?.signalingState !== 'stable') {
                     return;
                 }
-                // //set remote description
+
+                //set remote description
                 const remoteDesc = new RTCSessionDescription(message.sdp);
-                await peerConnection.setRemoteDescription(remoteDesc);
-
-                const mediaStream =
-                    await navigator.mediaDevices.getUserMedia(mediaConstraints);
-
-                attachVideoStream(localVideoRef.current, mediaStream);
-                mediaStream.getTracks().forEach((track) => {
-                    peerConnection.addTrack(track, mediaStream);
-                });
+                await peerConnection?.setRemoteDescription(remoteDesc);
+                await addLocalTracks(peerConnection);
 
                 for (const candidate of localIceCandidates.current) {
                     try {
-                        await peerConnection.addIceCandidate(candidate);
+                        await peerConnection?.addIceCandidate(candidate);
                     } catch (err) {
                         console.error('Error adding buffered ICE', err);
                     }
                 }
                 localIceCandidates.current = [];
 
-                peerConnection.oniceconnectionstatechange = () => {
-                    console.log(
-                        'ICE state:',
-                        localPeerConnection.current?.iceConnectionState
-                    );
-                };
-
                 //set local description and send video answer
-                const offer = await peerConnection.createAnswer();
-                await peerConnection.setLocalDescription(offer);
+                const offer = await peerConnection?.createAnswer();
+                await peerConnection?.setLocalDescription(offer);
 
                 //to server
                 socket.emit('video-answer', {
-                    sdp: peerConnection.localDescription!,
+                    sdp: peerConnection?.localDescription!,
                     peer: message.peer,
                 });
                 // ackCallback('acknowledged', null);
             } catch (error) {
                 console.error(error);
             }
-        });
+        }
 
-        socket.on('video-answer', async (data) => {
+        async function handleVideoAnswer(data: {
+            sdp: RTCSessionDescription;
+            peer: User;
+        }) {
             try {
                 const remoteDesc = new RTCSessionDescription(data.sdp);
 
@@ -166,7 +194,6 @@ export function ConversationContainer() {
                     await localPeerConnection.current.setRemoteDescription(
                         remoteDesc
                     );
-                    isRemoteDescSetOnAnswer.current = true;
                     for (const candidate of localIceCandidates.current) {
                         try {
                             await localPeerConnection.current.addIceCandidate(
@@ -181,8 +208,12 @@ export function ConversationContainer() {
             } catch (error) {
                 console.error(error);
             }
-        });
-        socket.on('new-ice-candidate', async (data) => {
+        }
+
+        async function handleNewIceCandidate(data: {
+            candidate: RTCIceCandidateInit;
+            peerId: string;
+        }) {
             const candidate = new RTCIceCandidate(data.candidate);
 
             if (!localPeerConnection.current) return;
@@ -198,8 +229,35 @@ export function ConversationContainer() {
             } else {
                 localIceCandidates.current.push(candidate);
             }
-        });
-    }, [attachRemoteTrack]);
+        }
+
+        socket.on('video-offer', handleVideOffer);
+        socket.on('new-ice-candidate', handleNewIceCandidate);
+        socket.on('video-answer', handleVideoAnswer);
+
+        return () => {
+            socket.off('video-offer', handleVideOffer);
+            socket.off('new-ice-candidate', handleNewIceCandidate);
+            socket.off('video-answer', handleVideoAnswer);
+        };
+    }, [addLocalTracks, createPeerConnection]);
+
+
+    async function cleanup() {
+        if (localPeerConnection.current) {
+            localPeerConnection.current.onicecandidate = null;
+            localPeerConnection.current.oniceconnectionstatechange = null;
+            localPeerConnection.current.ontrack = null;
+            await localPeerConnection.current.setLocalDescription(undefined);
+            localPeerConnection.current = null;
+        }
+        if (localVideoRef.current) {
+            localVideoRef.current.srcObject = null;
+        }
+        if (remoteVideoRef.current) {
+            remoteVideoRef.current.srcObject = null;
+        }
+    }
     return (
         <div className="relative flex min-h-0 flex-col bg-slate-900/60 border-r border-white/5 overflow-y-auto w-full md:w-80 md:shrink-0 max-h-[35vh] md:max-h-none">
             <div className="relative z-10 px-4 py-3 border-b border-white/5 flex items-center gap-3">
@@ -221,77 +279,33 @@ export function ConversationContainer() {
                                 alert('Cannot call self');
                                 return;
                             } else if (!callActive) {
-                                try {
-                                    const peerConnection =
-                                        new RTCPeerConnection({
-                                            iceServers: rtcIceServers,
-                                        });
-                                    localPeerConnection.current =
-                                        peerConnection;
+                                if (!selectedConversationUser?.id) return;
+                                const peerConnection = await createPeerConnection(
+                                    selectedConversationUser.id
+                                );
+                                if (!peerConnection) return;
+                                
+                                await addLocalTracks(peerConnection); //order important: add tracks to peer before creating offer
 
-                                    const stream =
-                                        await navigator.mediaDevices.getUserMedia(
-                                            mediaConstraints
-                                        );
-
-                                    attachVideoStream(
-                                        localVideoRef.current,
-                                        stream
-                                    );
-
-                                    stream.getTracks().forEach((track) => {
-                                        peerConnection.addTrack(track, stream);
-                                    });
-                                    peerConnection.onicecandidate = async (
-                                        event
-                                    ) => {
-                                        console.log(event.candidate);
-
-                                        if (event.candidate) {
-                                            if (selectedConversationUser) {
-                                                socket.emit(
-                                                    'new-ice-candidate',
-                                                    {
-                                                        peerId: selectedConversationUser.id,
-                                                        candidate:
-                                                            event.candidate,
-                                                    }
-                                                );
-                                            }
+                                const offer =
+                                await peerConnection.createOffer();
+                                await peerConnection.setLocalDescription(
+                                    offer
+                                );
+                                console.log(selectedConversationUser);
+                                
+                                if (selectedConversationUser) {
+                                    socket.emit(
+                                        'video-call',
+                                        {
+                                            sdp: peerConnection
+                                                .localDescription!,
+                                            peer: selectedConversationUser,
+                                        },
+                                        (ack) => {
+                                            console.log(ack);
                                         }
-                                    };
-                                    peerConnection.oniceconnectionstatechange =
-                                        () => {
-                                            console.log(
-                                                'ICE state:',
-                                                localPeerConnection.current
-                                                    ?.iceConnectionState
-                                            );
-                                        };
-                                    peerConnection.ontrack = (event) => {
-                                        attachRemoteTrack(event.track);
-                                    };
-
-                                    const offer =
-                                        await peerConnection.createOffer();
-                                    await peerConnection.setLocalDescription(
-                                        offer
                                     );
-
-                                    if (selectedConversationUser) {
-                                        socket.emit(
-                                            'video-call',
-                                            {
-                                                sdp: peerConnection.localDescription!,
-                                                peer: selectedConversationUser,
-                                            },
-                                            (ack) => {
-                                                console.log(ack);
-                                            }
-                                        );
-                                    }
-                                } catch (error) {
-                                    console.log(error);
                                 }
                             } else {
                                 if (localVideoRef.current)

@@ -153,7 +153,7 @@ io.on('connection', async (socket) => {
     );
     socket.emit('connected-users', connectedUsers);
     socket.broadcast.emit('new-user-connected', {
-        id: socket.handshake.auth.user.id,
+        id: socket.handshake.auth.user?.id,
         user: socket.handshake.auth.user,
     });
 
