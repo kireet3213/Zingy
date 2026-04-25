@@ -64,7 +64,7 @@ export function ConversationContainer() {
             attachVideoStream(remoteVideoRef.current, remoteStream.current);
         }
         remoteStream.current.addTrack(track);
-    },[]);
+    }, []);
 
     useEffect(() => {
         if (!conversationsData?.conversations || !authUser) return;
