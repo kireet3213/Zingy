@@ -21,16 +21,43 @@ const mediaConstraints = {
     audio: false,
     video: true,
 };
-const rtcIceServers: RTCIceServer[] = [
+
+const getConfiguredTurnUrls = (): string[] => {
+    const configuredTurnUrl =
+        localStorage.getItem('turnUrl') || import.meta.env.VITE_TURN_URL || '';
+    if (configuredTurnUrl) {
+        return [configuredTurnUrl];
+    }
+
+    const configuredServerUrl =
+        localStorage.getItem('serverUrl') ||
+        import.meta.env.VITE_API_URL ||
+        window.location.origin;
+
+    const serverUrl = new URL(configuredServerUrl);
+
+    if (URL.canParse(serverUrl)) {
+        const host = serverUrl.hostname;
+        return [
+            `turn:${host}:3478?transport=udp`,
+            `turn:${host}:3478?transport=tcp`,
+        ];
+    } else {
+        return [
+            'turn:127.0.0.1:3478?transport=udp',
+            'turn:127.0.0.1:3478?transport=tcp',
+        ];
+    }
+};
+
+const getRtcIceServers = (): RTCIceServer[] => [
     {
-        urls: 'stun:stun.l.google.com:19302',
-    },
-    {
-        urls: 'turn:localhost:8080',
-        username: 'webrtc',
-        credential: 'webrtc',
+        urls: getConfiguredTurnUrls(),
+        username: 'devuser',
+        credential: 'devpass',
     },
 ];
+
 export function ConversationContainer() {
     const dispatch = useAppDispatch();
     const conversationUsers = useAppSelector(selectConversationUsers);
@@ -41,6 +68,7 @@ export function ConversationContainer() {
     const localVideoRef = useRef<HTMLVideoElement>(null);
     const remoteVideoRef = useRef<HTMLVideoElement>(null);
 
+    const localStreamRef = useRef<MediaStream | null>(null);
     const remoteStream = useRef<MediaStream | null>(null);
     const [callActive, setCallActive] = useState<boolean>(false);
     const localPeerConnection = useRef<RTCPeerConnection | null>(null);
@@ -55,11 +83,47 @@ export function ConversationContainer() {
         stream: MediaStream
     ) => {
         if (!videoElement) return;
+        if (videoElement.srcObject === stream) return;
         videoElement.srcObject = stream;
     };
+
+    const setLocalVideoElement = useCallback(
+        (videoElement: HTMLVideoElement | null) => {
+            localVideoRef.current = videoElement;
+            if (videoElement && localStreamRef.current) {
+                attachVideoStream(videoElement, localStreamRef.current);
+            }
+        },
+        []
+    );
+
+    const setRemoteVideoElement = useCallback(
+        (videoElement: HTMLVideoElement | null) => {
+            remoteVideoRef.current = videoElement;
+            if (videoElement && remoteStream.current) {
+                attachVideoStream(videoElement, remoteStream.current);
+            }
+        },
+        []
+    );
+
+    const ensureRemoteStream = useCallback(() => {
+        if (!remoteStream.current) {
+            remoteStream.current = new MediaStream();
+        }
+        attachVideoStream(remoteVideoRef.current, remoteStream.current);
+        return remoteStream.current;
+    }, []);
+
     const getLocalMediaStream = useCallback(async () => {
+        if (localStreamRef.current) {
+            attachVideoStream(localVideoRef.current, localStreamRef.current);
+            return localStreamRef.current;
+        }
+
         const stream =
             await navigator.mediaDevices.getUserMedia(mediaConstraints);
+        localStreamRef.current = stream;
         attachVideoStream(localVideoRef.current, stream);
         return stream;
     }, []);
@@ -73,13 +137,31 @@ export function ConversationContainer() {
         },
         [getLocalMediaStream]
     );
-    const attachRemoteTrack = useCallback((track: MediaStreamTrack) => {
-        if (!remoteStream.current) {
-            remoteStream.current = new MediaStream();
+    const attachRemoteMedia = useCallback(
+        (event: RTCTrackEvent) => {
+            const stream = event.streams[0];
+            if (stream) {
+                remoteStream.current = stream;
+                attachVideoStream(remoteVideoRef.current, stream);
+                return;
+            }
+
+            const fallbackStream = ensureRemoteStream();
+            if (!fallbackStream.getTrackById(event.track.id)) {
+                fallbackStream.addTrack(event.track);
+            }
+        },
+        [ensureRemoteStream]
+    );
+
+    useEffect(() => {
+        if (callActive && localStreamRef.current) {
+            attachVideoStream(localVideoRef.current, localStreamRef.current);
+        }
+        if (callActive && remoteStream.current) {
             attachVideoStream(remoteVideoRef.current, remoteStream.current);
         }
-        remoteStream.current.addTrack(track);
-    }, []);
+    }, [callActive]);
 
     const cleanup = useCallback(async (notifyPeer = false) => {
         const peerId = activePeerId.current;
@@ -116,6 +198,7 @@ export function ConversationContainer() {
             remoteVideoRef.current.srcObject = null;
         }
 
+        localStreamRef.current = null;
         remoteStream.current = null;
         activePeerId.current = null;
         localIceCandidates.current = [];
@@ -129,7 +212,8 @@ export function ConversationContainer() {
 
             try {
                 const peerConnection = new RTCPeerConnection({
-                    iceServers: rtcIceServers,
+                    iceServers: getRtcIceServers(),
+                    iceTransportPolicy: 'relay',
                 });
                 const localPC = (localPeerConnection.current = peerConnection);
 
@@ -148,7 +232,6 @@ export function ConversationContainer() {
                     switch (localPC.iceConnectionState) {
                         case 'closed':
                         case 'failed':
-                        case 'disconnected':
                             await cleanup(false);
                             break;
                     }
@@ -156,7 +239,7 @@ export function ConversationContainer() {
                 localPC.ontrack = (event) => {
                     console.log('received track');
 
-                    attachRemoteTrack(event.track);
+                    attachRemoteMedia(event);
                 };
                 return localPC;
             } catch (err) {
@@ -164,7 +247,7 @@ export function ConversationContainer() {
             }
             return null;
         },
-        [attachRemoteTrack, cleanup]
+        [attachRemoteMedia, cleanup]
     );
 
     useEffect(() => {
@@ -365,15 +448,15 @@ export function ConversationContainer() {
                         className="h-full w-full object-cover bg-black"
                         autoPlay
                         playsInline
-                        ref={remoteVideoRef}
+                        ref={setRemoteVideoElement}
                     ></video>
-                    <div className="pointer-events-none absolute inset-x-0 bottom-0 flex flex-col items-center gap-4 bg-gradient-to-t from-black/80 via-black/35 to-transparent px-6 pb-8 pt-24">
+                    <div className="pointer-events-none absolute inset-x-0 bottom-0 flex flex-col items-center gap-4 bg-linear-to-t from-black/80 via-black/35 to-transparent px-6 pb-8 pt-24">
                         <video
                             className="pointer-events-auto h-36 w-56 rounded-2xl border border-white/15 bg-slate-950 object-cover shadow-2xl"
                             autoPlay
                             muted
                             playsInline
-                            ref={localVideoRef}
+                            ref={setLocalVideoElement}
                         ></video>
                         <button
                             type="button"

@@ -1,0 +1,36 @@
+services:
+  coturn:
+    image: instrumentisto/coturn:latest
+    container_name: coturn
+    restart: unless-stopped
+    command:
+      - -n
+      - --no-cli
+      - --no-tls
+      - --no-dtls
+      - --fingerprint
+      - --lt-cred-mech
+      - --realm=local
+      - --user=devuser:devpass
+      - --listening-ip=0.0.0.0
+      - --relay-ip=172.28.0.2
+      - --external-ip=${TURN_EXTERNAL_IP:-192.168.1.36}/172.28.0.2
+      - --listening-port=3478
+      - --min-port=49160
+      - --max-port=49200
+      - --verbose
+    networks:
+      coturn_net:
+        ipv4_address: 172.28.0.2
+
+    ports:
+      - "3478:3478/tcp"
+      - "3478:3478/udp"
+      - "49160-49200:49160-49200/udp"
+
+networks:
+  coturn_net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.28.0.0/16
