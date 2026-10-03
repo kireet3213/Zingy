@@ -45,6 +45,9 @@ export type ServerToClientEvents = {
     }) => void;
     'new-user-connected': (data: { id: string; user: User }) => void;
     'user-disconnected': (data: string) => void;
+    'incoming-call': IncomingCall;
+    'call-accepted': CallAccepted;
+    'call-declined': CallDeclined;
     'video-offer': VideoOffer;
     'video-answer': VideoAnswer;
     "new-ice-candidate": NewIceCandidateClient;
@@ -56,6 +59,9 @@ export type ClientToServerEvents = {
         data: Message,
         acknowledgementCallback: AcknowledgementCallback
     ) => void;
+    'video-call-ring': VideoCallRing;
+    'call-accepted': CallAccepted;
+    'call-declined': CallDeclined;
     'video-call': VideoCallFunction;
     'video-answer': VideoAnswer;
     'new-ice-candidate': NewIceCandidateClient;
@@ -95,4 +101,20 @@ type NewIceCandidateClient = (data: {
 
 type VideoHangup = (data: {
     peerId: string;
+}) => void;
+
+type VideoCallRing = (data: {
+    peer: UserConversation;
+}) => void;
+
+type IncomingCall = (data: {
+    peer: User;
+}) => void;
+
+type CallAccepted = (data: {
+    peer: User;
+}) => void;
+
+type CallDeclined = (data: {
+    peer: User;
 }) => void;

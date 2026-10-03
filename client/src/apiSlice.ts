@@ -1,4 +1,5 @@
 import {
+    BaseQueryApi,
     createApi,
     FetchArgs,
     fetchBaseQuery,
@@ -81,14 +82,14 @@ const dynamicBaseQuery = fetchBaseQuery({
 
 const baseQueryWithDynamicUrl = async (
     args: string | FetchArgs,
-    api: any,
-    extraOptions: any
+    api: BaseQueryApi,
+    extraOptions: object
 ) => {
     const serverUrl =
         localStorage.getItem('serverUrl') || import.meta.env.VITE_API_URL || '';
     const baseUrl = `${serverUrl}/api`;
 
-    let finalArgs = args;
+    let finalArgs: string | FetchArgs;
     if (typeof args === 'string') {
         finalArgs = `${baseUrl}/${args}`;
     } else {

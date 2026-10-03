@@ -175,6 +175,30 @@ io.on('connection', async (socket) => {
         }
     });
 
+    socket.on('video-call-ring', (payload) => {
+        console.log('video-call-ring', payload);
+        const currentUser = socket.handshake.auth.user as User;
+        socket.to(payload.peer.id).emit('incoming-call', {
+            peer: currentUser,
+        });
+    });
+
+    socket.on('call-accepted', (payload) => {
+        console.log('call-accepted', payload);
+        const currentUser = socket.handshake.auth.user as User;
+        socket.to(payload.peer.id).emit('call-accepted', {
+            peer: currentUser,
+        });
+    });
+
+    socket.on('call-declined', (payload) => {
+        console.log('call-declined', payload);
+        const currentUser = socket.handshake.auth.user as User;
+        socket.to(payload.peer.id).emit('call-declined', {
+            peer: currentUser,
+        });
+    });
+
     socket.on('video-call', (payload, acknowledgementCallback) => {
         console.log('video-call', payload);
         const currentUser = socket.handshake.auth.user as User;

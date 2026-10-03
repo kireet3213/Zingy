@@ -13,9 +13,14 @@ import {
     type UserConversationApiPayload,
 } from '../../apiSlice.ts';
 import { UserConversation } from './types/conversation.ts';
-import { PhoneOff, Video } from 'lucide-react';
+import { Phone, PhoneOff, Video } from 'lucide-react';
 import { socket } from '../../socket';
 import { User } from '@shared-types/socket.ts';
+import {
+    startRingtone,
+    stopRingtone,
+    playHangupTone,
+} from '../../helpers/ringtone';
 
 const mediaConstraints = {
     audio: false,
@@ -71,6 +76,8 @@ export function ConversationContainer() {
     const localStreamRef = useRef<MediaStream | null>(null);
     const remoteStream = useRef<MediaStream | null>(null);
     const [callActive, setCallActive] = useState<boolean>(false);
+    const [ringing, setRinging] = useState<boolean>(false);
+    const [incomingCall, setIncomingCall] = useState<User | null>(null);
     const localPeerConnection = useRef<RTCPeerConnection | null>(null);
 
     const { data: conversationsData } = useGetUserConversationsQuery();
@@ -164,6 +171,10 @@ export function ConversationContainer() {
     }, [callActive]);
 
     const cleanup = useCallback(async (notifyPeer = false) => {
+        stopRingtone();
+        if (localPeerConnection.current) {
+            playHangupTone();
+        }
         const peerId = activePeerId.current;
         if (notifyPeer && peerId) {
             socket.emit('video-hangup', { peerId });
@@ -203,6 +214,8 @@ export function ConversationContainer() {
         activePeerId.current = null;
         localIceCandidates.current = [];
         setCallActive(false);
+        setRinging(false);
+        setIncomingCall(null);
     }, []);
 
     const createPeerConnection = useCallback(
@@ -218,6 +231,7 @@ export function ConversationContainer() {
                 const localPC = (localPeerConnection.current = peerConnection);
 
                 localPC.onicecandidate = async (event) => {
+                    // eslint-disable-next-line no-console
                     console.log('new ice candidate', event.candidate);
 
                     if (event.candidate) {
@@ -228,6 +242,7 @@ export function ConversationContainer() {
                     }
                 };
                 localPC.oniceconnectionstatechange = async () => {
+                    // eslint-disable-next-line no-console
                     console.log('ICE state:', localPC.iceConnectionState);
                     switch (localPC.iceConnectionState) {
                         case 'closed':
@@ -243,6 +258,7 @@ export function ConversationContainer() {
                 };
                 return localPC;
             } catch (err) {
+                // eslint-disable-next-line no-console
                 console.log('error', err);
             }
             return null;
@@ -268,7 +284,55 @@ export function ConversationContainer() {
     }, [conversationsData, authUser, dispatch]);
 
     useEffect(() => {
-        async function handleVideOffer(message: {
+        // Receiver gets an incoming call ring
+        function handleIncomingCall(data: { peer: User }) {
+            startRingtone();
+            setIncomingCall(data.peer);
+        }
+
+        // Caller is notified that the peer accepted
+        async function handleCallAccepted(data: { peer: User }) {
+            setRinging(false);
+            try {
+                const peerConnection = await createPeerConnection(data.peer.id);
+                if (!peerConnection) return;
+
+                await addLocalTracks(peerConnection);
+
+                const offer = await peerConnection.createOffer();
+                await peerConnection.setLocalDescription(offer);
+
+                socket.emit(
+                    'video-call',
+                    {
+                        sdp: peerConnection.localDescription!,
+                        peer: {
+                            id: data.peer.id,
+                            senderName: data.peer.username,
+                            profileImageUrl:
+                                data.peer.userProfile?.profileUrl ?? '',
+                            self: false,
+                        },
+                    },
+                    (ack) => {
+                        // eslint-disable-next-line no-console
+                        console.log(ack);
+                    }
+                );
+            } catch (error) {
+                // eslint-disable-next-line no-console
+                console.error(error);
+            }
+        }
+
+        // Caller is notified that the peer declined
+        function handleCallDeclined() {
+            setRinging(false);
+            activePeerId.current = null;
+        }
+
+        // Receiver gets the actual WebRTC offer after accepting
+        async function handleVideoOffer(message: {
             sdp: RTCSessionDescriptionInit;
             peer: User;
         }) {
@@ -282,7 +346,6 @@ export function ConversationContainer() {
                     return;
                 }
 
-                //set remote description
                 const remoteDesc = new RTCSessionDescription(message.sdp);
                 await peerConnection?.setRemoteDescription(remoteDesc);
                 await addLocalTracks(peerConnection);
@@ -291,22 +354,21 @@ export function ConversationContainer() {
                     try {
                         await peerConnection?.addIceCandidate(candidate);
                     } catch (err) {
+                        // eslint-disable-next-line no-console
                         console.error('Error adding buffered ICE', err);
                     }
                 }
                 localIceCandidates.current = [];
 
-                //set local description and send video answer
-                const offer = await peerConnection?.createAnswer();
-                await peerConnection?.setLocalDescription(offer);
+                const answer = await peerConnection?.createAnswer();
+                await peerConnection?.setLocalDescription(answer);
 
-                //to server
                 socket.emit('video-answer', {
-                    sdp: peerConnection?.localDescription!,
+                    sdp: peerConnection.localDescription!,
                     peer: message.peer,
                 });
-                // ackCallback('acknowledged', null);
             } catch (error) {
+                // eslint-disable-next-line no-console
                 console.error(error);
             }
         }
@@ -335,12 +397,14 @@ export function ConversationContainer() {
                                 candidate
                             );
                         } catch (err) {
+                            // eslint-disable-next-line no-console
                             console.error('Error adding buffered ICE', err);
                         }
                     }
                     localIceCandidates.current = [];
                 }
             } catch (error) {
+                // eslint-disable-next-line no-console
                 console.error(error);
             }
         }
@@ -359,6 +423,7 @@ export function ConversationContainer() {
                         candidate
                     );
                 } catch (err) {
+                    // eslint-disable-next-line no-console
                     console.error('Error adding ICE candidate', err);
                 }
             } else {
@@ -367,18 +432,22 @@ export function ConversationContainer() {
         }
 
         async function handleVideoHangup() {
-            console.log('video hangup..');
-
             await cleanup(false);
         }
 
-        socket.on('video-offer', handleVideOffer);
+        socket.on('incoming-call', handleIncomingCall);
+        socket.on('call-accepted', handleCallAccepted);
+        socket.on('call-declined', handleCallDeclined);
+        socket.on('video-offer', handleVideoOffer);
         socket.on('new-ice-candidate', handleNewIceCandidate);
         socket.on('video-answer', handleVideoAnswer);
         socket.on('video-hangup', handleVideoHangup);
 
         return () => {
-            socket.off('video-offer', handleVideOffer);
+            socket.off('incoming-call', handleIncomingCall);
+            socket.off('call-accepted', handleCallAccepted);
+            socket.off('call-declined', handleCallDeclined);
+            socket.off('video-offer', handleVideoOffer);
             socket.off('new-ice-candidate', handleNewIceCandidate);
             socket.off('video-answer', handleVideoAnswer);
             socket.off('video-hangup', handleVideoHangup);
@@ -401,37 +470,18 @@ export function ConversationContainer() {
                         type="button"
                         className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-slate-800/90 text-white shadow-sm"
                         onClick={async () => {
-                            setCallActive(!callActive);
                             if (selectedConversationUser?.self) {
                                 alert('Cannot call self');
                                 return;
-                            } else if (!callActive) {
+                            }
+                            if (!callActive && !ringing) {
                                 if (!selectedConversationUser?.id) return;
-                                const peerConnection =
-                                    await createPeerConnection(
-                                        selectedConversationUser.id
-                                    );
-                                if (!peerConnection) return;
-
-                                await addLocalTracks(peerConnection); //order important: add tracks to peer before creating offer
-
-                                const offer =
-                                    await peerConnection.createOffer();
-                                await peerConnection.setLocalDescription(offer);
-                                console.log(selectedConversationUser);
-
-                                if (selectedConversationUser) {
-                                    socket.emit(
-                                        'video-call',
-                                        {
-                                            sdp: peerConnection.localDescription!,
-                                            peer: selectedConversationUser,
-                                        },
-                                        (ack) => {
-                                            console.log(ack);
-                                        }
-                                    );
-                                }
+                                setRinging(true);
+                                activePeerId.current =
+                                    selectedConversationUser.id;
+                                socket.emit('video-call-ring', {
+                                    peer: selectedConversationUser,
+                                });
                             } else {
                                 await cleanup(true);
                             }
@@ -442,6 +492,87 @@ export function ConversationContainer() {
                 </div>
             </div>
             <ConversationBox conversationUsers={conversationUsers} />
+            {incomingCall && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
+                    <div className="flex flex-col items-center gap-6 rounded-3xl bg-slate-900 border border-white/10 px-12 py-10 shadow-2xl">
+                        <div className="h-20 w-20 rounded-full bg-indigo-500/20 flex items-center justify-center">
+                            <Video className="text-indigo-400" size={36} />
+                        </div>
+                        <div className="text-center">
+                            <p className="text-lg font-semibold text-white">
+                                {incomingCall.username}
+                            </p>
+                            <p className="text-sm text-slate-400 mt-1">
+                                Incoming video call...
+                            </p>
+                        </div>
+                        <div className="flex items-center gap-6">
+                            <button
+                                type="button"
+                                className="inline-flex items-center gap-2 rounded-full bg-red-600 px-5 py-3 text-sm font-semibold text-white shadow-lg"
+                                onClick={() => {
+                                    stopRingtone();
+                                    socket.emit('call-declined', {
+                                        peer: incomingCall,
+                                    });
+                                    setIncomingCall(null);
+                                }}
+                            >
+                                <PhoneOff size={18} />
+                                Decline
+                            </button>
+                            <button
+                                type="button"
+                                className="inline-flex items-center gap-2 rounded-full bg-green-600 px-5 py-3 text-sm font-semibold text-white shadow-lg"
+                                onClick={() => {
+                                    stopRingtone();
+                                    socket.emit('call-accepted', {
+                                        peer: incomingCall,
+                                    });
+                                    setIncomingCall(null);
+                                }}
+                            >
+                                <Phone size={18} />
+                                Accept
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+            {ringing && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
+                    <div className="flex flex-col items-center gap-6 rounded-3xl bg-slate-900 border border-white/10 px-12 py-10 shadow-2xl">
+                        <div className="h-20 w-20 rounded-full bg-indigo-500/20 flex items-center justify-center animate-pulse">
+                            <Video className="text-indigo-400" size={36} />
+                        </div>
+                        <div className="text-center">
+                            <p className="text-lg font-semibold text-white">
+                                Calling {selectedConversationUser?.senderName}
+                                ...
+                            </p>
+                            <p className="text-sm text-slate-400 mt-1">
+                                Ringing
+                            </p>
+                        </div>
+                        <button
+                            type="button"
+                            className="inline-flex items-center gap-2 rounded-full bg-red-600 px-5 py-3 text-sm font-semibold text-white shadow-lg"
+                            onClick={async () => {
+                                if (activePeerId.current) {
+                                    socket.emit('video-hangup', {
+                                        peerId: activePeerId.current,
+                                    });
+                                }
+                                setRinging(false);
+                                activePeerId.current = null;
+                            }}
+                        >
+                            <PhoneOff size={18} />
+                            Cancel
+                        </button>
+                    </div>
+                </div>
+            )}
             {callActive && (
                 <div className="fixed inset-0 z-50 bg-black">
                     <video

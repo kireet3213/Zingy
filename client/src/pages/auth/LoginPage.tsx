@@ -151,7 +151,7 @@ export const LoginPage = () => {
                             </div>
                         </Form.Root>
                     </div>
-                    {status && (
+                    {status === 'succeeded' && (
                         <p className="mt-4 text-emerald-400 flex items-center gap-2">
                             <InfoCircledIcon />
                             Login Successful
