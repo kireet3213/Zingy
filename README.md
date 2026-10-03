@@ -136,6 +136,16 @@ Video calls use WebRTC with signaling over Socket.IO:
 
 For calls across different networks (or when direct peer-to-peer fails), a TURN relay is needed.
 
+### coturn configuration
+
+The TURN server config lives in `server/turnserver.conf` and is mounted into the Docker container. The only value that needs to change per-machine is the external IP, which is passed via the `TURN_EXTERNAL_IP` environment variable at startup.
+
+| Platform | Get LAN IP |
+|----------|------------|
+| macOS    | `ipconfig getifaddr en0` |
+| Linux    | `hostname -I \| awk '{print $1}'` |
+| Windows  | `(Get-NetIPAddress -AddressFamily IPv4 -InterfaceAlias "Wi-Fi").IPAddress` |
+
 ## Setting Up coturn (TURN Server) on macOS
 
 ### 1. Find your Mac's LAN IP
@@ -209,7 +219,7 @@ If incoming connections are blocked, allow them in **System Settings > Network >
 - **No relay candidates gathered** — check `docker logs coturn` and confirm `TURN_EXTERNAL_IP` is your actual LAN IP, not `127.0.0.1`.
 - **Relay candidates appear but connection fails on same machine** — this is a known Docker Desktop UDP hairpin issue. Test from a second device instead.
 - **`turns:` (TLS) is not supported** — this local setup intentionally disables TLS. Only use `turn:` (plain) URLs.
-- **Credentials rejected** — the default credentials are `devuser`/`devpass`, set in `server/docker-compose.yml`.
+- **Credentials rejected** — the default credentials are `devuser`/`devpass`, set in `server/turnserver.conf`.
 
 ## Setting Up coturn (TURN Server) on Windows
 
@@ -298,7 +308,7 @@ New-NetFirewallRule -DisplayName "coturn relay" -Direction Inbound -Protocol UDP
 - **No relay candidates gathered** — check `docker logs coturn` and confirm `TURN_EXTERNAL_IP` is your actual LAN IP, not `127.0.0.1`.
 - **Relay candidates appear but connection fails on same machine** — this is a known Docker Desktop UDP hairpin issue. Test from a second device instead.
 - **`turns:` (TLS) is not supported** — this local setup intentionally disables TLS. Only use `turn:` (plain) URLs.
-- **Credentials rejected** — the default credentials are `devuser`/`devpass`, set in `server/docker-compose.yml`.
+- **Credentials rejected** — the default credentials are `devuser`/`devpass`, set in `server/turnserver.conf`.
 - **`Get-NetIPAddress` returns multiple IPs** — specify the exact adapter alias (e.g. `"Wi-Fi"`, `"Ethernet"`), or pick the correct IP manually with `ipconfig`.
 
 ## Setting Up coturn (TURN Server) on Linux
@@ -387,7 +397,7 @@ sudo firewall-cmd --reload
 - **No relay candidates gathered** — check `docker logs coturn` and confirm `TURN_EXTERNAL_IP` is your actual LAN IP, not `127.0.0.1`.
 - **Relay candidates appear but connection fails on same machine** — try testing from a second device on the LAN.
 - **`turns:` (TLS) is not supported** — this local setup intentionally disables TLS. Only use `turn:` (plain) URLs.
-- **Credentials rejected** — the default credentials are `devuser`/`devpass`, set in `server/docker-compose.yml`.
+- **Credentials rejected** — the default credentials are `devuser`/`devpass`, set in `server/turnserver.conf`.
 - **`hostname -I` returns multiple IPs** — pick the one on your LAN subnet, or use `ip addr show` to identify the correct interface.
 
 ## Notes
