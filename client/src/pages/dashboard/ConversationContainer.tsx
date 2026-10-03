@@ -56,6 +56,9 @@ const getConfiguredTurnUrls = (): string[] => {
 };
 
 const getRtcIceServers = (): RTCIceServer[] => [
+    // {
+    //     urls: 'stun:stun.l.google.com:19302',
+    // },
     {
         urls: getConfiguredTurnUrls(),
         username: 'devuser',
@@ -226,7 +229,7 @@ export function ConversationContainer() {
             try {
                 const peerConnection = new RTCPeerConnection({
                     iceServers: getRtcIceServers(),
-                    iceTransportPolicy: 'relay',
+                    iceTransportPolicy: 'relay', // force TURN for testing coturn
                 });
                 const localPC = (localPeerConnection.current = peerConnection);
 

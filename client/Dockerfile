@@ -4,7 +4,7 @@ CMD ["turnserver", \
   "-n", \
   "--log-file=stdout", \
   "--lt-cred-mech", \
-  "--user=test:test", \
+  "--user=devuser:devpass", \
   "--realm=localhost", \
   "--min-port=49160", \
   "--max-port=49200"]
