@@ -5,12 +5,10 @@ services:
     restart: unless-stopped
     volumes:
       - ./turnserver.conf:/etc/turnserver.conf
-    command:
-      - turnserver
-      - -c
-      - /etc/turnserver.conf
-      - -n
-      - --external-ip=${TURN_EXTERNAL_IP:-192.168.1.36}/172.28.0.2
+    command: >-
+      turnserver
+      -c /etc/turnserver.conf
+      --external-ip=${TURN_EXTERNAL_IP:-192.168.1.36}/172.28.0.2
     networks:
       coturn_net:
         ipv4_address: 172.28.0.2

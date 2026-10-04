@@ -34,25 +34,17 @@ const getConfiguredTurnUrls = (): string[] => {
         return [configuredTurnUrl];
     }
 
-    const configuredServerUrl =
-        localStorage.getItem('serverUrl') ||
-        import.meta.env.VITE_API_URL ||
-        window.location.origin;
+    // Use VITE_TURN_HOST to point directly at the TURN server's reachable IP/hostname.
+    // Do NOT derive from the API URL — ngrok doesn't forward port 3478.
+    const turnHost =
+        localStorage.getItem('turnHost') ||
+        import.meta.env.VITE_TURN_HOST ||
+        '127.0.0.1';
 
-    const serverUrl = new URL(configuredServerUrl);
-
-    if (URL.canParse(serverUrl)) {
-        const host = serverUrl.hostname;
-        return [
-            `turn:${host}:3478?transport=udp`,
-            `turn:${host}:3478?transport=tcp`,
-        ];
-    } else {
-        return [
-            'turn:127.0.0.1:3478?transport=udp',
-            'turn:127.0.0.1:3478?transport=tcp',
-        ];
-    }
+    return [
+        `turn:${turnHost}:3478?transport=udp`,
+        `turn:${turnHost}:3478?transport=tcp`,
+    ];
 };
 
 const getRtcIceServers = (): RTCIceServer[] => [

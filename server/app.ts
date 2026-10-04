@@ -26,7 +26,24 @@ import {
 } from '../shared-types/socket';
 
 const app: Application = express();
-app.use(cors());
+// Configure CORS
+const allowedOrigins = ['http://localhost:5173', process.env.CLIENT_URL].filter(
+    Boolean
+) as string[];
+
+app.use(
+    cors({
+        origin: allowedOrigins,
+        methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+        allowedHeaders: [
+            'Content-Type',
+            'Authorization',
+            'zingy-custom-header',
+        ],
+        credentials: true,
+    })
+);
+
 // parse requests of content-type - application/json
 console.log(path.join(__dirname, '.env'));
 app.use(bodyParser.json());
@@ -79,7 +96,10 @@ const server = app.listen(PORT, () => {
 //socket io server
 const io = new Server<ClientToServerEvents, ServerToClientEvents>(server, {
     cors: {
-        origin: process.env.CLIENT_URL || 'http://localhost:5173',
+        origin: allowedOrigins,
+        methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+        allowedHeaders: ['zingy-custom-header', 'ngrok-skip-browser-warning'],
+        credentials: true,
     },
     connectionStateRecovery: {
         maxDisconnectionDuration: 2 * 60 * 1000,

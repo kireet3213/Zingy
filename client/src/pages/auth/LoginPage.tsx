@@ -11,7 +11,7 @@ import {
     selectCurrentLoginStatus,
     selectCurrentUser,
 } from './authSlice.ts';
-import { setServerUrl } from '../../store/settingsSlice.ts';
+import { setServerUrl, setTurnUrl } from '../../store/settingsSlice.ts';
 import { recreateSocket } from '../../socket.ts';
 
 export const LoginPage = () => {
@@ -23,8 +23,10 @@ export const LoginPage = () => {
     const status = loginStatus.status;
     const errorText = loginStatus.errorText;
     const serverUrl = useAppSelector((state) => state.settings.serverUrl);
+    const turnUrl = useAppSelector((state) => state.settings.turnUrl);
     const [showServerModal, setShowServerModal] = useState(false);
     const [tempUrl, setTempUrl] = useState(serverUrl);
+    const [tempTurnUrl, setTempTurnUrl] = useState(turnUrl);
 
     useEffect(() => {
         async function navigateToDashboard() {
@@ -165,9 +167,11 @@ export const LoginPage = () => {
                                     Server Configuration
                                 </h2>
                                 <p className="text-sm text-slate-400 mb-4">
-                                    Set the backend server URL for the
-                                    application
+                                    Set the backend server and TURN server URLs
                                 </p>
+                                <label className="text-xs font-medium text-slate-400 mb-1 block">
+                                    Server URL
+                                </label>
                                 <input
                                     type="text"
                                     value={tempUrl}
@@ -175,10 +179,23 @@ export const LoginPage = () => {
                                     placeholder="http://localhost:3000"
                                     className="w-full px-3 py-2 bg-slate-700 border border-white/10 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 mb-4"
                                 />
+                                <label className="text-xs font-medium text-slate-400 mb-1 block">
+                                    TURN Server URL
+                                </label>
+                                <input
+                                    type="text"
+                                    value={tempTurnUrl}
+                                    onChange={(e) =>
+                                        setTempTurnUrl(e.target.value)
+                                    }
+                                    placeholder="turn:192.168.1.36:3478?transport=udp"
+                                    className="w-full px-3 py-2 bg-slate-700 border border-white/10 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 mb-4"
+                                />
                                 <div className="flex gap-3 justify-end">
                                     <button
                                         onClick={() => {
                                             setTempUrl(serverUrl);
+                                            setTempTurnUrl(turnUrl);
                                             setShowServerModal(false);
                                         }}
                                         className="px-4 py-2 rounded-lg text-slate-300 hover:bg-slate-700 transition-colors"
@@ -188,6 +205,7 @@ export const LoginPage = () => {
                                     <button
                                         onClick={() => {
                                             dispatch(setServerUrl(tempUrl));
+                                            dispatch(setTurnUrl(tempTurnUrl));
                                             recreateSocket();
                                             setShowServerModal(false);
                                         }}
