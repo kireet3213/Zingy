@@ -39,6 +39,7 @@ app.use(
             'Content-Type',
             'Authorization',
             'zingy-custom-header',
+            'ngrok-skip-browser-warning',
         ],
         credentials: true,
     })

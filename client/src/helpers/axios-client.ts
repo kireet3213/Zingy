@@ -8,6 +8,7 @@ const getAxiosInstance = () => {
         timeout: 2000,
         headers: {
             'ZINGY-Custom-Header': 'ZINGGGGED',
+            'ngrok-skip-browser-warning': 'true',
             Authorization: `Bearer ${localStorage.getItem('jwt_secret')}`,
         },
     });

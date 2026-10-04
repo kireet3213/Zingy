@@ -188,7 +188,7 @@ export const LoginPage = () => {
                                     onChange={(e) =>
                                         setTempTurnUrl(e.target.value)
                                     }
-                                    placeholder="turn:192.168.1.36:3478?transport=udp"
+                                    placeholder="turn:127.0.0.1:3478?transport=udp"
                                     className="w-full px-3 py-2 bg-slate-700 border border-white/10 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 mb-4"
                                 />
                                 <div className="flex gap-3 justify-end">
