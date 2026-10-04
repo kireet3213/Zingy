@@ -5,9 +5,6 @@ import {
 } from '../../shared-types/socket';
 
 const getSocketUrl = (): string => {
-    if (import.meta.env.PROD) {
-        return '';
-    }
     return (
         localStorage.getItem('serverUrl') || import.meta.env.VITE_API_URL || ''
     );
