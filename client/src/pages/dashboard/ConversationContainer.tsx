@@ -13,7 +13,7 @@ import {
     type UserConversationApiPayload,
 } from '../../apiSlice.ts';
 import { UserConversation } from './types/conversation.ts';
-import { Phone, PhoneOff, Video } from 'lucide-react';
+import { Mic, MicOff, Phone, PhoneOff, Video } from 'lucide-react';
 import { socket } from '../../socket';
 import { User } from '@shared-types/socket.ts';
 import {
@@ -23,7 +23,7 @@ import {
 } from '../../helpers/ringtone';
 
 const mediaConstraints = {
-    audio: false,
+    audio: true,
     video: true,
 };
 
@@ -73,6 +73,7 @@ export function ConversationContainer() {
     const [callActive, setCallActive] = useState<boolean>(false);
     const [ringing, setRinging] = useState<boolean>(false);
     const [incomingCall, setIncomingCall] = useState<User | null>(null);
+    const [micEnabled, setMicEnabled] = useState<boolean>(true);
     const localPeerConnection = useRef<RTCPeerConnection | null>(null);
 
     const { data: conversationsData } = useGetUserConversationsQuery();
@@ -87,6 +88,10 @@ export function ConversationContainer() {
         if (!videoElement) return;
         if (videoElement.srcObject === stream) return;
         videoElement.srcObject = stream;
+        videoElement.play().catch((err) => {
+            // eslint-disable-next-line no-console
+            console.warn('autoplay blocked:', err);
+        });
     };
 
     const setLocalVideoElement = useCallback(
@@ -102,8 +107,12 @@ export function ConversationContainer() {
     const setRemoteVideoElement = useCallback(
         (videoElement: HTMLVideoElement | null) => {
             remoteVideoRef.current = videoElement;
-            if (videoElement && remoteStream.current) {
-                attachVideoStream(videoElement, remoteStream.current);
+            if (videoElement) {
+                videoElement.muted = false;
+                videoElement.volume = 1.0;
+                if (remoteStream.current) {
+                    attachVideoStream(videoElement, remoteStream.current);
+                }
             }
         },
         []
@@ -125,6 +134,10 @@ export function ConversationContainer() {
 
         const stream =
             await navigator.mediaDevices.getUserMedia(mediaConstraints);
+        // Mute audio tracks by default
+        stream.getAudioTracks().forEach((track) => {
+            track.enabled = true;
+        });
         localStreamRef.current = stream;
         attachVideoStream(localVideoRef.current, stream);
         return stream;
@@ -145,12 +158,17 @@ export function ConversationContainer() {
             if (stream) {
                 remoteStream.current = stream;
                 attachVideoStream(remoteVideoRef.current, stream);
-                return;
+            } else {
+                const fallbackStream = ensureRemoteStream();
+                if (!fallbackStream.getTrackById(event.track.id)) {
+                    fallbackStream.addTrack(event.track);
+                }
             }
 
-            const fallbackStream = ensureRemoteStream();
-            if (!fallbackStream.getTrackById(event.track.id)) {
-                fallbackStream.addTrack(event.track);
+            // Ensure remote video element plays audio
+            if (remoteVideoRef.current) {
+                remoteVideoRef.current.muted = false;
+                remoteVideoRef.current.volume = 1.0;
             }
         },
         [ensureRemoteStream]
@@ -164,6 +182,17 @@ export function ConversationContainer() {
             attachVideoStream(remoteVideoRef.current, remoteStream.current);
         }
     }, [callActive]);
+
+    const toggleMic = useCallback(() => {
+        const stream = localStreamRef.current;
+        if (!stream) return;
+        const audioTracks = stream.getAudioTracks();
+        const newEnabled = !micEnabled;
+        audioTracks.forEach((track) => {
+            track.enabled = newEnabled;
+        });
+        setMicEnabled(newEnabled);
+    }, [micEnabled]);
 
     const cleanup = useCallback(async (notifyPeer = false) => {
         stopRingtone();
@@ -211,6 +240,7 @@ export function ConversationContainer() {
         setCallActive(false);
         setRinging(false);
         setIncomingCall(null);
+        setMicEnabled(true);
     }, []);
 
     const createPeerConnection = useCallback(
@@ -246,8 +276,8 @@ export function ConversationContainer() {
                     }
                 };
                 localPC.ontrack = (event) => {
-                    console.log('received track');
-
+                    // eslint-disable-next-line no-console
+                    console.log('received track:', event.track.kind, 'enabled:', event.track.enabled);
                     attachRemoteMedia(event);
                 };
                 return localPC;
@@ -583,16 +613,34 @@ export function ConversationContainer() {
                             playsInline
                             ref={setLocalVideoElement}
                         ></video>
-                        <button
-                            type="button"
-                            className="pointer-events-auto inline-flex items-center gap-2 rounded-full bg-red-600 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-red-950/40"
-                            onClick={async () => {
-                                await cleanup(true);
-                            }}
-                        >
-                            <PhoneOff size={18} />
-                            Hang up
-                        </button>
+                        <div className="pointer-events-auto flex items-center gap-4">
+                            <button
+                                type="button"
+                                className={`inline-flex h-12 w-12 items-center justify-center rounded-full shadow-lg transition-colors ${
+                                    micEnabled
+                                        ? 'bg-slate-700 hover:bg-slate-600'
+                                        : 'bg-slate-700/60 hover:bg-slate-600/60 ring-2 ring-red-500/50'
+                                }`}
+                                onClick={toggleMic}
+                                title={micEnabled ? 'Mute mic' : 'Unmute mic'}
+                            >
+                                {micEnabled ? (
+                                    <Mic size={20} className="text-white" />
+                                ) : (
+                                    <MicOff size={20} className="text-red-400" />
+                                )}
+                            </button>
+                            <button
+                                type="button"
+                                className="inline-flex items-center gap-2 rounded-full bg-red-600 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-red-950/40"
+                                onClick={async () => {
+                                    await cleanup(true);
+                                }}
+                            >
+                                <PhoneOff size={18} />
+                                Hang up
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}
