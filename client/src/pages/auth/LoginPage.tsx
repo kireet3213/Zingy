@@ -46,16 +46,18 @@ export const LoginPage = () => {
                             Welcome To{' '}
                             <span className="text-indigo-400">Zingy</span>
                         </h2>
-                        <button
-                            onClick={() => setShowServerModal(true)}
-                            className="flex h-10 w-10 bg-white/5 hover:bg-indigo-500/20 items-center justify-center cursor-pointer rounded-xl transition-all duration-200"
-                            title="Server Settings"
-                        >
-                            <GearIcon
-                                strokeWidth={1}
-                                className="min-w-5 min-h-5 text-slate-400 hover:text-indigo-400 transition-colors"
-                            />
-                        </button>
+                        {import.meta.env.DEV && (
+                            <button
+                                onClick={() => setShowServerModal(true)}
+                                className="flex h-10 w-10 bg-white/5 hover:bg-indigo-500/20 items-center justify-center cursor-pointer rounded-xl transition-all duration-200"
+                                title="Server Settings"
+                            >
+                                <GearIcon
+                                    strokeWidth={1}
+                                    className="min-w-5 min-h-5 text-slate-400 hover:text-indigo-400 transition-colors"
+                                />
+                            </button>
+                        )}
                     </div>
                     <img
                         className="rounded-full mx-auto w-20 h-20 mb-8 ring-4 ring-indigo-500/30"
