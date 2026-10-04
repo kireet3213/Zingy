@@ -1,0 +1,26 @@
+services:
+  coturn:
+    image: coturn/coturn:latest
+    container_name: coturn
+    restart: unless-stopped
+    volumes:
+      - ./turnserver.conf:/etc/turnserver.conf
+    command: >-
+      turnserver
+      -c /etc/turnserver.conf
+      --external-ip=${TURN_EXTERNAL_IP:-192.168.1.36}/172.28.0.2
+    networks:
+      coturn_net:
+        ipv4_address: 172.28.0.2
+
+    ports:
+      - "3478:3478/tcp"
+      - "3478:3478/udp"
+      - "49160-49200:49160-49200/udp"
+
+networks:
+  coturn_net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.28.0.0/16

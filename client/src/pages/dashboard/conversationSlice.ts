@@ -90,7 +90,9 @@ export const selectConversationUsers = (state: RootState) =>
 export const selectSelectedConversationUserId = (state: RootState) =>
     state.conversations.selectedConversationUserId;
 
-export const selectSelectedConversationUser = (state: RootState) => {
+export const selectSelectedConversationUser = (
+    state: RootState
+): UserConversation | null => {
     const selectedUserId = state.conversations.selectedConversationUserId;
     if (!selectedUserId) return null;
     return (

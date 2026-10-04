@@ -25,6 +25,8 @@ export const useMessageEvents = () => {
             to: string;
             fromUser: User | null;
         }) => {
+            // eslint-disable-next-line no-console
+            console.log('Received private message:', payload);
             const conversationUserId = payload.from;
             const isFromSelf = payload.from === authUser?.id;
 

@@ -1,4 +1,9 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+import {
+    BaseQueryApi,
+    createApi,
+    FetchArgs,
+    fetchBaseQuery,
+} from '@reduxjs/toolkit/query/react';
 import { Message } from '@shared-types/socket';
 
 type MessageApiPayload = {
@@ -64,18 +69,44 @@ type GetUserConversationsResponse = {
     conversations: UserConversationApiPayload[];
 };
 
+const dynamicBaseQuery = fetchBaseQuery({
+    baseUrl: '',
+    prepareHeaders: (headers) => {
+        const token = localStorage.getItem('jwt_secret');
+        if (token) {
+            headers.set('Authorization', `Bearer ${token}`);
+        }
+        headers.set('ngrok-skip-browser-warning', 'true');
+        return headers;
+    },
+});
+
+const baseQueryWithDynamicUrl = async (
+    args: string | FetchArgs,
+    api: BaseQueryApi,
+    extraOptions: object
+) => {
+    const serverUrl =
+        localStorage.getItem('serverUrl') || import.meta.env.VITE_API_URL || '';
+    const baseUrl = `${serverUrl}/api`;
+
+    let finalArgs: string | FetchArgs;
+    if (typeof args === 'string') {
+        finalArgs = `${baseUrl}/${args}`;
+    } else {
+        const url = args.url || '';
+        finalArgs = {
+            ...args,
+            url: `${baseUrl}/${url}`,
+        };
+    }
+
+    return dynamicBaseQuery(finalArgs, api, extraOptions);
+};
+
 export const apiSlice = createApi({
     reducerPath: 'api',
-    baseQuery: fetchBaseQuery({
-        baseUrl: `${import.meta.env.VITE_API_URL}/api`,
-        prepareHeaders: (headers) => {
-            const token = localStorage.getItem('jwt_secret');
-            if (token) {
-                headers.set('Authorization', `Bearer ${token}`);
-            }
-            return headers;
-        },
-    }),
+    baseQuery: baseQueryWithDynamicUrl,
     tagTypes: ['ConversationMessages'],
     endpoints: (builder) => ({
         getConversationMessages: builder.query<
@@ -110,12 +141,11 @@ export const apiSlice = createApi({
                 method: 'POST',
             }),
         }),
-        getUserConversations: builder.query<
-            GetUserConversationsResponse,
-            void
-        >({
-            query: () => 'conversations',
-        }),
+        getUserConversations: builder.query<GetUserConversationsResponse, void>(
+            {
+                query: () => 'conversations',
+            }
+        ),
     }),
 });
 

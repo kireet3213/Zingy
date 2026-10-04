@@ -1,0 +1,12 @@
+{
+  "$schema": "https://aka.ms/azure/static-web-apps-cli/schema",
+  "configurations": {
+    "zingy": {
+      "appLocation": "client",
+      "outputLocation": "dist",
+      "appBuildCommand": "pnpm run build",
+      "run": "pnpm run dev",
+      "appDevserverUrl": "http://localhost:5173"
+    }
+  }
+}

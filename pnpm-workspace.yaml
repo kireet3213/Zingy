@@ -3,6 +3,6 @@ packages:
   - client/**
   - shared-types/**
 
-ignoredBuiltDependencies:
+onlyBuiltDependencies:
   - bcrypt
   - esbuild

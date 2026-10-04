@@ -54,7 +54,7 @@ export const useUserEvents = () => {
                     id: payload.user.id,
                     conversationId: undefined,
                     senderName: payload.user.username,
-                    profileImageUrl: payload.user.userProfile.profileUrl,
+                    profileImageUrl: payload.user.userProfile?.profileUrl,
                     isConnected: true,
                     self: payload.user.id === authUserId,
                 } satisfies UserConversation)
@@ -86,7 +86,7 @@ export const useUserEvents = () => {
                         conversationId: undefined,
                         senderName: userPayload.user.username,
                         profileImageUrl:
-                            userPayload.user.userProfile.profileUrl,
+                            userPayload.user.userProfile?.profileUrl,
                         isConnected: userPayload.isConnected,
                         self: userPayload.user.id === authUserId,
                     };

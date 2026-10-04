@@ -26,7 +26,25 @@ import {
 } from '../shared-types/socket';
 
 const app: Application = express();
-app.use(cors());
+// Configure CORS
+const allowedOrigins = ['http://localhost:5173', process.env.CLIENT_URL].filter(
+    Boolean
+) as string[];
+
+app.use(
+    cors({
+        origin: allowedOrigins,
+        methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+        allowedHeaders: [
+            'Content-Type',
+            'Authorization',
+            'zingy-custom-header',
+            'ngrok-skip-browser-warning',
+        ],
+        credentials: true,
+    })
+);
+
 // parse requests of content-type - application/json
 console.log(path.join(__dirname, '.env'));
 app.use(bodyParser.json());
@@ -79,7 +97,10 @@ const server = app.listen(PORT, () => {
 //socket io server
 const io = new Server<ClientToServerEvents, ServerToClientEvents>(server, {
     cors: {
-        origin: process.env.CLIENT_URL || 'http://localhost:5173',
+        origin: allowedOrigins,
+        methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+        allowedHeaders: ['zingy-custom-header', 'ngrok-skip-browser-warning'],
+        credentials: true,
     },
     connectionStateRecovery: {
         maxDisconnectionDuration: 2 * 60 * 1000,
@@ -94,14 +115,14 @@ const userSockets = new Map<
     { user: User; id: string; isConnected: boolean }
 >();
 
-io.on('connection', (socket) => {
+io.on('connection', async (socket) => {
     // console.log("session store",sessionStore);
 
     console.log('Socket connected: ', socket.id);
     const currentUser: Maybe<User> = socket.handshake.auth.user;
 
     if (currentUser) {
-        socket.join(currentUser.id);
+        await socket.join(currentUser.id);
         userSockets.set(currentUser.id, {
             user: currentUser,
             id: socket.id,
@@ -153,7 +174,7 @@ io.on('connection', (socket) => {
     );
     socket.emit('connected-users', connectedUsers);
     socket.broadcast.emit('new-user-connected', {
-        id: socket.handshake.auth.user.id,
+        id: socket.handshake.auth.user?.id,
         user: socket.handshake.auth.user,
     });
 
@@ -173,5 +194,67 @@ io.on('connection', (socket) => {
                 });
             }
         }
+    });
+
+    socket.on('video-call-ring', (payload) => {
+        console.log('video-call-ring', payload);
+        const currentUser = socket.handshake.auth.user as User;
+        socket.to(payload.peer.id).emit('incoming-call', {
+            peer: currentUser,
+        });
+    });
+
+    socket.on('call-accepted', (payload) => {
+        console.log('call-accepted', payload);
+        const currentUser = socket.handshake.auth.user as User;
+        socket.to(payload.peer.id).emit('call-accepted', {
+            peer: currentUser,
+        });
+    });
+
+    socket.on('call-declined', (payload) => {
+        console.log('call-declined', payload);
+        const currentUser = socket.handshake.auth.user as User;
+        socket.to(payload.peer.id).emit('call-declined', {
+            peer: currentUser,
+        });
+    });
+
+    socket.on('video-call', (payload, acknowledgementCallback) => {
+        console.log('video-call', payload);
+        const currentUser = socket.handshake.auth.user as User;
+        socket.to(payload.peer.id).emit('video-offer', {
+            sdp: payload.sdp,
+            peer: currentUser,
+        });
+        acknowledgementCallback('acknowledged', null);
+    });
+
+    socket.on('video-answer', (payload) => {
+        console.log('video-answer', payload);
+        socket.to(payload.peer.id).emit('video-answer', {
+            sdp: payload.sdp,
+            peer: socket.handshake.auth.user as User,
+        });
+    });
+
+    socket.on('new-ice-candidate', (payload) => {
+        console.log(
+            'new-ice-candidate',
+            payload,
+            socket.handshake.auth.user.id
+        );
+        if (!payload?.peerId) return;
+        socket.to(payload.peerId).emit('new-ice-candidate', {
+            candidate: payload.candidate,
+            peerId: socket.handshake.auth.user.id,
+        });
+    });
+
+    socket.on('video-hangup', (payload) => {
+        if (!payload?.peerId) return;
+        socket.to(payload.peerId).emit('video-hangup', {
+            peerId: socket.handshake.auth.user.id,
+        });
     });
 });

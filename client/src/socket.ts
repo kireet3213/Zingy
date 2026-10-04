@@ -4,17 +4,36 @@ import {
     ServerToClientEvents,
 } from '../../shared-types/socket';
 
-// "undefined" means the URL will be computed from the `window.location` object
-const URL = import.meta.env.PROD ? '' : import.meta.env.VITE_API_URL;
+const getSocketUrl = (): string => {
+    return (
+        localStorage.getItem('serverUrl') || import.meta.env.VITE_API_URL || ''
+    );
+};
 
-export const socket: Socket<ServerToClientEvents, ClientToServerEvents> = io(
-    URL,
-    {
+let socketInstance: Socket<ServerToClientEvents, ClientToServerEvents>;
+
+const createSocket = (): Socket<ServerToClientEvents, ClientToServerEvents> => {
+    const url = getSocketUrl();
+    return io(url, {
         autoConnect: false,
         ackTimeout: 1000,
         reconnection: true,
         upgrade: true,
         reconnectionDelay: 1000,
         reconnectionDelayMax: 5000,
-    }
-);
+        extraHeaders: {
+            'ngrok-skip-browser-warning': 'true',
+        },
+    });
+};
+
+socketInstance = createSocket();
+
+export const socket: Socket<ServerToClientEvents, ClientToServerEvents> =
+    socketInstance;
+
+export const recreateSocket = () => {
+    socketInstance?.close();
+    socketInstance = createSocket();
+    return socketInstance;
+};

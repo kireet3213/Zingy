@@ -3,6 +3,6 @@ export type UserConversation = {
     conversationId?: number;
     senderName: string;
     profileImageUrl: string;
-    isConnected: boolean;
+    isConnected?: boolean;
     self: boolean;
 };
