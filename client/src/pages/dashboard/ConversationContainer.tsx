@@ -27,34 +27,34 @@ const mediaConstraints = {
     video: true,
 };
 
-const getConfiguredTurnUrls = (): string[] => {
-    const configuredTurnUrl =
-        localStorage.getItem('turnUrl') || import.meta.env.VITE_TURN_URL || '';
-    if (configuredTurnUrl) {
-        return [configuredTurnUrl];
-    }
-
-    // Use VITE_TURN_HOST to point directly at the TURN server's reachable IP/hostname.
-    // Do NOT derive from the API URL — ngrok doesn't forward port 3478.
-    const turnHost =
-        localStorage.getItem('turnHost') ||
-        import.meta.env.VITE_TURN_HOST ||
-        '127.0.0.1';
-
-    return [
-        `turn:${turnHost}:3478?transport=udp`,
-        `turn:${turnHost}:3478?transport=tcp`,
-    ];
-};
+const turnUsername =
+    import.meta.env.VITE_TURN_USERNAME || '';
+const turnCredential =
+    import.meta.env.VITE_TURN_CREDENTIAL || '';
 
 const getRtcIceServers = (): RTCIceServer[] => [
-    // {
-    //     urls: 'stun:stun.l.google.com:19302',
-    // },
     {
-        urls: getConfiguredTurnUrls(),
-        username: 'devuser',
-        credential: 'devpass',
+        urls: 'stun:stun.relay.metered.ca:80',
+    },
+    {
+        urls: 'turn:standard.relay.metered.ca:80',
+        username: turnUsername,
+        credential: turnCredential,
+    },
+    {
+        urls: 'turn:standard.relay.metered.ca:80?transport=tcp',
+        username: turnUsername,
+        credential: turnCredential,
+    },
+    {
+        urls: 'turn:standard.relay.metered.ca:443',
+        username: turnUsername,
+        credential: turnCredential,
+    },
+    {
+        urls: 'turns:standard.relay.metered.ca:443?transport=tcp',
+        username: turnUsername,
+        credential: turnCredential,
     },
 ];
 
@@ -221,7 +221,6 @@ export function ConversationContainer() {
             try {
                 const peerConnection = new RTCPeerConnection({
                     iceServers: getRtcIceServers(),
-                    iceTransportPolicy: 'relay', // force TURN for testing coturn
                 });
                 const localPC = (localPeerConnection.current = peerConnection);
 
