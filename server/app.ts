@@ -265,4 +265,12 @@ io.on('connection', async (socket) => {
             isSharing: payload.isSharing,
         });
     });
+
+    socket.on('doom-invite', (payload) => {
+        if (!payload?.peerId) return;
+        socket.to(payload.peerId).emit('doom-invite', {
+            peerId: socket.handshake.auth.user.id,
+            netPeerId: payload.netPeerId,
+        });
+    });
 });
