@@ -49,7 +49,8 @@ CLIENT_URL=http://localhost:5173
 
 ```env
 VITE_API_URL=http://localhost:3000
-VITE_TURN_URL=
+VITE_TURN_USERNAME=
+VITE_TURN_CREDENTIAL=
 ```
 
 ## Install
@@ -136,6 +137,39 @@ Video calls use WebRTC with signaling over Socket.IO:
 
 For calls across different networks (or when direct peer-to-peer fails), a TURN relay is needed.
 
+The ICE servers are listed in `client/src/helpers/ice-servers.ts`: metered.ca STUN and TURN (credentials from `VITE_TURN_USERNAME` and `VITE_TURN_CREDENTIAL`), plus two Google STUN servers as backup.
+
+### How a call works, as a picture
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/images/webrtc-bench-dark.png">
+  <img alt="An isometric bench that models a Zingy video call: two stations (the browsers), a shuttle on an overhead rail through a SIGNAL cabinet (the Socket.IO server), a STUN mast, a TURN relay box, NAT barrier gates, and a direct and a relayed cable between the stations." src="docs/images/webrtc-bench-light.png">
+</picture>
+
+The figure models a call as a bench. Each part stands for one piece of WebRTC:
+
+| On the bench | In WebRTC and Zingy |
+|---|---|
+| Stations A and B | The two browsers. Each creates an `RTCPeerConnection` |
+| Rail, shuttle and SIGNAL cabinet | Signaling over Socket.IO. `server/app.ts` only relays messages; it never sees audio or video |
+| Cards in each station's holder | ICE candidates: **host** (own address), **srflx** (public address from STUN) and **relay** (address on TURN) |
+| Barrier gate on each LAN edge | The NAT in front of each browser. A symmetric NAT blocks the direct path |
+| Selector knob and the two front cables | ICE picking a candidate pair: direct first, through the TURN box as the fallback |
+| Jacks and tray cartridges | The three transceivers in m-line order: mic, camera, screen |
+
+A call runs in four stages:
+
+1. **Signal.** `video-call-ring` → `call-accepted` → `video-call` (SDP offer) → `video-answer`, all relayed by the server.
+2. **Gather.** Each browser finds its candidates and trickles them over as `new-ice-candidate`.
+3. **Connect.** ICE checks pairs straight between the browsers, best pair first, and falls back to TURN if a NAT drops them.
+4. **Stream.** DTLS-SRTP carries audio and camera directly. Screen sharing is `replaceTrack` on the third transceiver plus a `screen-share-state` message, with no new offer.
+
+The interactive version steps through all 11 messages, and it can switch B's NAT to symmetric to show the TURN fallback. It lives at [`client/public/how-calls-work.html`](client/public/how-calls-work.html), which is a single self-contained file. The client deploy serves it at `/how-calls-work.html`; to view it locally, open the file in a browser.
+
+### Local coturn (optional)
+
+The coturn setup below runs a TURN server on your own machine, for testing on a LAN. The client doesn't read `VITE_TURN_URL` or the TURN URL in the login-page settings any more. To use a local coturn, add it to the list in `client/src/helpers/ice-servers.ts` (step 4 below).
+
 ### coturn configuration
 
 The TURN server config lives in `server/turnserver.conf` and is mounted into the Docker container. The only value that needs to change per-machine is the external IP, which is passed via the `TURN_EXTERNAL_IP` environment variable at startup.
@@ -181,13 +215,17 @@ You should see output indicating the server started on port `3478` with your LAN
 
 ### 4. Point the client at the TURN server
 
-The client auto-derives the TURN URL from the server URL by default. To override explicitly, set in `client/.env`:
+Add an entry to `getRtcIceServers()` in `client/src/helpers/ice-servers.ts`:
 
-```
-VITE_TURN_URL=turn:192.168.1.42:3478?transport=udp
+```ts
+{
+    urls: 'turn:192.168.1.42:3478?transport=udp',
+    username: 'devuser',
+    credential: 'devpass',
+},
 ```
 
-Replace `192.168.1.42` with your actual LAN IP.
+Replace `192.168.1.42` with your actual LAN IP. Don't commit this entry.
 
 ### 5. Restarting after IP change
 
@@ -199,7 +237,7 @@ export TURN_EXTERNAL_IP=$(ipconfig getifaddr en0)
 docker compose up -d --force-recreate coturn
 ```
 
-Update `VITE_TURN_URL` in `client/.env` if you set it explicitly.
+Update the IP in your `ice-servers.ts` entry.
 
 ### Testing from a second device
 
@@ -260,13 +298,17 @@ You should see output indicating the server started on port `3478` with your LAN
 
 ### 4. Point the client at the TURN server
 
-Same as macOS — the client auto-derives the TURN URL from the server URL. To override explicitly, set in `client/.env`:
+Add an entry to `getRtcIceServers()` in `client/src/helpers/ice-servers.ts`:
 
-```
-VITE_TURN_URL=turn:192.168.1.36:3478?transport=udp
+```ts
+{
+    urls: 'turn:192.168.1.36:3478?transport=udp',
+    username: 'devuser',
+    credential: 'devpass',
+},
 ```
 
-Replace `192.168.1.36` with your actual LAN IP.
+Replace `192.168.1.36` with your actual LAN IP. Don't commit this entry.
 
 ### 5. Restarting after IP change
 
@@ -278,7 +320,7 @@ $env:TURN_EXTERNAL_IP = (Get-NetIPAddress -AddressFamily IPv4 -InterfaceAlias "W
 docker compose up -d --force-recreate coturn
 ```
 
-Update `VITE_TURN_URL` in `client/.env` if you set it explicitly.
+Update the IP in your `ice-servers.ts` entry.
 
 ### Testing from a second device
 
@@ -346,13 +388,17 @@ You should see output indicating the server started on port `3478` with your LAN
 
 ### 4. Point the client at the TURN server
 
-Same as other platforms — the client auto-derives the TURN URL from the server URL. To override explicitly, set in `client/.env`:
+Add an entry to `getRtcIceServers()` in `client/src/helpers/ice-servers.ts`:
 
-```
-VITE_TURN_URL=turn:192.168.1.50:3478?transport=udp
+```ts
+{
+    urls: 'turn:192.168.1.50:3478?transport=udp',
+    username: 'devuser',
+    credential: 'devpass',
+},
 ```
 
-Replace `192.168.1.50` with your actual LAN IP.
+Replace `192.168.1.50` with your actual LAN IP. Don't commit this entry.
 
 ### 5. Restarting after IP change
 
@@ -364,7 +410,7 @@ export TURN_EXTERNAL_IP=$(hostname -I | awk '{print $1}')
 docker compose up -d --force-recreate coturn
 ```
 
-Update `VITE_TURN_URL` in `client/.env` if you set it explicitly.
+Update the IP in your `ice-servers.ts` entry.
 
 ### Testing from a second device
 
