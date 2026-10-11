@@ -38,6 +38,17 @@ const mediaConstraints = {
     video: true,
 };
 
+const getVideoTransceivers = (peerConnection: RTCPeerConnection) =>
+    peerConnection
+        .getTransceivers()
+        .filter((t) => t.receiver.track.kind === 'video');
+
+// Both peers create transceivers in m-line order: camera first, screen second.
+const isScreenTransceiver = (
+    peerConnection: RTCPeerConnection,
+    transceiver: RTCRtpTransceiver
+) => getVideoTransceivers(peerConnection).indexOf(transceiver) === 1;
+
 export function ConversationContainer() {
     const dispatch = useAppDispatch();
     const conversationUsers = useAppSelector(selectConversationUsers);
@@ -47,16 +58,23 @@ export function ConversationContainer() {
     );
     const localVideoRef = useRef<HTMLVideoElement>(null);
     const remoteVideoRef = useRef<HTMLVideoElement>(null);
+    const remoteScreenVideoRef = useRef<HTMLVideoElement>(null);
+    const remoteAudioRef = useRef<HTMLAudioElement>(null);
 
     const localStreamRef = useRef<MediaStream | null>(null);
     const screenStreamRef = useRef<MediaStream | null>(null);
     const remoteStream = useRef<MediaStream | null>(null);
+    const remoteScreenStream = useRef<MediaStream | null>(null);
+    // Second video transceiver, negotiated up front so screen sharing never
+    // has to replace (and hide) the camera track.
+    const screenTransceiverRef = useRef<RTCRtpTransceiver | null>(null);
     const [callActive, setCallActive] = useState<boolean>(false);
     const [ringing, setRinging] = useState<boolean>(false);
     const [incomingCall, setIncomingCall] = useState<User | null>(null);
     const [micEnabled, setMicEnabled] = useState<boolean>(true);
     const [screenSharing, setScreenSharing] = useState<boolean>(false);
     const [peerScreenSharing, setPeerScreenSharing] = useState<boolean>(false);
+    const [remotePeerName, setRemotePeerName] = useState<string | null>(null);
     const [sidebarWidth, setSidebarWidth] = useState<number>(256);
     const isResizing = useRef<boolean>(false);
     const [doomSession, setDoomSession] = useState<DoomSession | null>(null);
@@ -68,7 +86,7 @@ export function ConversationContainer() {
     const activePeerId = useRef<string | null>(null);
     const localIceCandidates = useRef<RTCIceCandidate[]>([]);
     const attachVideoStream = (
-        videoElement: HTMLVideoElement | null,
+        videoElement: HTMLMediaElement | null,
         stream: MediaStream
     ) => {
         if (!videoElement) return;
@@ -90,15 +108,33 @@ export function ConversationContainer() {
         []
     );
 
+    // Remote camera video is muted: its audio plays through remoteAudioRef so
+    // the tile can move between main area and sidebar without cutting audio.
     const setRemoteVideoElement = useCallback(
         (videoElement: HTMLVideoElement | null) => {
             remoteVideoRef.current = videoElement;
-            if (videoElement) {
-                videoElement.muted = false;
-                videoElement.volume = 1.0;
-                if (remoteStream.current) {
-                    attachVideoStream(videoElement, remoteStream.current);
-                }
+            if (videoElement && remoteStream.current) {
+                attachVideoStream(videoElement, remoteStream.current);
+            }
+        },
+        []
+    );
+
+    const setRemoteScreenVideoElement = useCallback(
+        (videoElement: HTMLVideoElement | null) => {
+            remoteScreenVideoRef.current = videoElement;
+            if (videoElement && remoteScreenStream.current) {
+                attachVideoStream(videoElement, remoteScreenStream.current);
+            }
+        },
+        []
+    );
+
+    const setRemoteAudioElement = useCallback(
+        (audioElement: HTMLAudioElement | null) => {
+            remoteAudioRef.current = audioElement;
+            if (audioElement && remoteStream.current) {
+                attachVideoStream(audioElement, remoteStream.current);
             }
         },
         []
@@ -109,6 +145,7 @@ export function ConversationContainer() {
             remoteStream.current = new MediaStream();
         }
         attachVideoStream(remoteVideoRef.current, remoteStream.current);
+        attachVideoStream(remoteAudioRef.current, remoteStream.current);
         return remoteStream.current;
     }, []);
 
@@ -139,20 +176,29 @@ export function ConversationContainer() {
     );
     const attachRemoteMedia = useCallback(
         (event: RTCTrackEvent) => {
+            const peerConnection = localPeerConnection.current;
+            if (
+                peerConnection &&
+                isScreenTransceiver(peerConnection, event.transceiver)
+            ) {
+                remoteScreenStream.current = new MediaStream([event.track]);
+                attachVideoStream(
+                    remoteScreenVideoRef.current,
+                    remoteScreenStream.current
+                );
+                return;
+            }
+
             const stream = event.streams[0];
             if (stream) {
                 remoteStream.current = stream;
                 attachVideoStream(remoteVideoRef.current, stream);
+                attachVideoStream(remoteAudioRef.current, stream);
             } else {
                 const fallbackStream = ensureRemoteStream();
                 if (!fallbackStream.getTrackById(event.track.id)) {
                     fallbackStream.addTrack(event.track);
                 }
-            }
-
-            if (remoteVideoRef.current) {
-                remoteVideoRef.current.muted = false;
-                remoteVideoRef.current.volume = 1.0;
             }
         },
         [ensureRemoteStream]
@@ -164,6 +210,7 @@ export function ConversationContainer() {
         }
         if (callActive && remoteStream.current) {
             attachVideoStream(remoteVideoRef.current, remoteStream.current);
+            attachVideoStream(remoteAudioRef.current, remoteStream.current);
         }
     }, [callActive]);
 
@@ -184,16 +231,10 @@ export function ConversationContainer() {
             screenStreamRef.current = null;
         }
 
-        // Restore camera track on the peer connection
-        const cameraTrack = localStreamRef.current?.getVideoTracks()[0];
-        if (cameraTrack && localPeerConnection.current) {
-            const sender = localPeerConnection.current
-                .getSenders()
-                .find((s) => s.track?.kind === 'video');
-            if (sender) {
-                sender.replaceTrack(cameraTrack);
-            }
-        }
+        screenTransceiverRef.current?.sender.replaceTrack(null).catch((err) => {
+            // eslint-disable-next-line no-console
+            console.warn('Failed to clear screen track:', err);
+        });
 
         setScreenSharing(false);
         if (activePeerId.current) {
@@ -210,6 +251,13 @@ export function ConversationContainer() {
             return;
         }
 
+        const screenSender = screenTransceiverRef.current?.sender;
+        if (!screenSender) {
+            // eslint-disable-next-line no-console
+            console.warn('Screen sharing unavailable: no screen transceiver');
+            return;
+        }
+
         try {
             const screenStream = await navigator.mediaDevices.getDisplayMedia({
                 video: true,
@@ -219,15 +267,8 @@ export function ConversationContainer() {
 
             const screenTrack = screenStream.getVideoTracks()[0];
 
-            // Replace the camera video track with screen track on the peer connection
-            if (localPeerConnection.current) {
-                const sender = localPeerConnection.current
-                    .getSenders()
-                    .find((s) => s.track?.kind === 'video');
-                if (sender) {
-                    await sender.replaceTrack(screenTrack);
-                }
-            }
+            // Sent alongside the camera on its own transceiver
+            await screenSender.replaceTrack(screenTrack);
 
             // When user stops sharing via browser UI
             screenTrack.onended = () => {
@@ -255,33 +296,30 @@ export function ConversationContainer() {
         });
     }, []);
 
-    const handleResizeStart = useCallback(
-        (e: React.MouseEvent) => {
-            e.preventDefault();
-            isResizing.current = true;
+    const handleResizeStart = useCallback((e: React.MouseEvent) => {
+        e.preventDefault();
+        isResizing.current = true;
 
-            const onMouseMove = (ev: MouseEvent) => {
-                if (!isResizing.current) return;
-                const newWidth = window.innerWidth - ev.clientX;
-                const clamped = Math.min(480, Math.max(200, newWidth));
-                setSidebarWidth(clamped);
-            };
+        const onMouseMove = (ev: MouseEvent) => {
+            if (!isResizing.current) return;
+            const newWidth = window.innerWidth - ev.clientX;
+            const clamped = Math.min(480, Math.max(200, newWidth));
+            setSidebarWidth(clamped);
+        };
 
-            const onMouseUp = () => {
-                isResizing.current = false;
-                document.removeEventListener('mousemove', onMouseMove);
-                document.removeEventListener('mouseup', onMouseUp);
-                document.body.style.cursor = '';
-                document.body.style.userSelect = '';
-            };
+        const onMouseUp = () => {
+            isResizing.current = false;
+            document.removeEventListener('mousemove', onMouseMove);
+            document.removeEventListener('mouseup', onMouseUp);
+            document.body.style.cursor = '';
+            document.body.style.userSelect = '';
+        };
 
-            document.body.style.cursor = 'col-resize';
-            document.body.style.userSelect = 'none';
-            document.addEventListener('mousemove', onMouseMove);
-            document.addEventListener('mouseup', onMouseUp);
-        },
-        []
-    );
+        document.body.style.cursor = 'col-resize';
+        document.body.style.userSelect = 'none';
+        document.addEventListener('mousemove', onMouseMove);
+        document.addEventListener('mouseup', onMouseUp);
+    }, []);
 
     const cleanup = useCallback(async (notifyPeer = false) => {
         stopRingtone();
@@ -326,9 +364,17 @@ export function ConversationContainer() {
         if (remoteVideoRef.current) {
             remoteVideoRef.current.srcObject = null;
         }
+        if (remoteScreenVideoRef.current) {
+            remoteScreenVideoRef.current.srcObject = null;
+        }
+        if (remoteAudioRef.current) {
+            remoteAudioRef.current.srcObject = null;
+        }
 
         localStreamRef.current = null;
         remoteStream.current = null;
+        remoteScreenStream.current = null;
+        screenTransceiverRef.current = null;
         activePeerId.current = null;
         localIceCandidates.current = [];
         setCallActive(false);
@@ -337,6 +383,7 @@ export function ConversationContainer() {
         setMicEnabled(true);
         setScreenSharing(false);
         setPeerScreenSharing(false);
+        setRemotePeerName(null);
         setDoomSession(null);
     }, []);
 
@@ -374,7 +421,12 @@ export function ConversationContainer() {
                 };
                 localPC.ontrack = (event) => {
                     // eslint-disable-next-line no-console
-                    console.log('received track:', event.track.kind, 'enabled:', event.track.enabled);
+                    console.log(
+                        'received track:',
+                        event.track.kind,
+                        'enabled:',
+                        event.track.enabled
+                    );
                     attachRemoteMedia(event);
                 };
                 return localPC;
@@ -412,11 +464,16 @@ export function ConversationContainer() {
 
         async function handleCallAccepted(data: { peer: User }) {
             setRinging(false);
+            setRemotePeerName(data.peer.username);
             try {
                 const peerConnection = await createPeerConnection(data.peer.id);
                 if (!peerConnection) return;
 
                 await addLocalTracks(peerConnection);
+                screenTransceiverRef.current = peerConnection.addTransceiver(
+                    'video',
+                    { direction: 'sendrecv' }
+                );
 
                 const offer = await peerConnection.createOffer();
                 await peerConnection.setLocalDescription(offer);
@@ -455,6 +512,7 @@ export function ConversationContainer() {
         }) {
             try {
                 activePeerId.current = message.peer.id;
+                setRemotePeerName(message.peer.username);
                 const peerConnection = await createPeerConnection(
                     message.peer.id
                 );
@@ -466,6 +524,15 @@ export function ConversationContainer() {
                 const remoteDesc = new RTCSessionDescription(message.sdp);
                 await peerConnection?.setRemoteDescription(remoteDesc);
                 await addLocalTracks(peerConnection);
+
+                // The offer's second video m-line is the screen channel.
+                // addTrack attached the camera to the first; enable sending on the second.
+                const screenTransceiver =
+                    getVideoTransceivers(peerConnection)[1];
+                if (screenTransceiver) {
+                    screenTransceiver.direction = 'sendrecv';
+                    screenTransceiverRef.current = screenTransceiver;
+                }
 
                 for (const candidate of localIceCandidates.current) {
                     try {
@@ -585,6 +652,9 @@ export function ConversationContainer() {
             socket.off('doom-invite', handleDoomInvite);
         };
     }, [addLocalTracks, cleanup, createPeerConnection]);
+
+    // Main area is taken by a shared screen or the game -> peer camera moves to the sidebar
+    const peerCameraInSidebar = peerScreenSharing || doomSession !== null;
 
     return (
         <div className="relative flex min-h-0 flex-col bg-slate-900/60 border-r border-white/5 overflow-y-auto w-full md:w-80 md:shrink-0 max-h-[35vh] md:max-h-none">
@@ -717,16 +787,25 @@ export function ConversationContainer() {
                     <div className="relative flex min-w-0 flex-1 flex-col">
                         {/* Remote video fills main area */}
                         <div className="relative flex min-h-0 flex-1 items-center justify-center bg-slate-900">
-                            <video
-                                className={`h-full w-full bg-black ${
-                                    peerScreenSharing
-                                        ? 'object-contain'
-                                        : 'object-cover'
-                                }`}
-                                autoPlay
-                                playsInline
-                                ref={setRemoteVideoElement}
-                            ></video>
+                            {peerScreenSharing ? (
+                                <video
+                                    className="h-full w-full bg-black object-contain"
+                                    autoPlay
+                                    muted
+                                    playsInline
+                                    ref={setRemoteScreenVideoElement}
+                                ></video>
+                            ) : (
+                                !doomSession && (
+                                    <video
+                                        className="h-full w-full bg-black object-cover"
+                                        autoPlay
+                                        muted
+                                        playsInline
+                                        ref={setRemoteVideoElement}
+                                    ></video>
+                                )
+                            )}
                             {doomSession && (
                                 <DoomGame
                                     session={doomSession}
@@ -777,10 +856,7 @@ export function ConversationContainer() {
                                         className="text-white"
                                     />
                                 ) : (
-                                    <Monitor
-                                        size={20}
-                                        className="text-white"
-                                    />
+                                    <Monitor size={20} className="text-white" />
                                 )}
                             </button>
                             <button
@@ -826,43 +902,60 @@ export function ConversationContainer() {
                             className="absolute inset-y-0 left-0 z-10 w-1.5 cursor-col-resize border-l border-white/5 transition-colors hover:bg-indigo-500/40"
                             onMouseDown={handleResizeStart}
                         />
-                        <div className="px-3 py-3 border-b border-white/5">
-                            <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">
-                                You
-                            </p>
-                        </div>
-                        <div className="relative p-3">
-                            <video
-                                className="aspect-video w-full rounded-xl border border-white/10 bg-slate-950 object-cover shadow-lg"
-                                autoPlay
-                                muted
-                                playsInline
-                                ref={setLocalVideoElement}
-                            ></video>
-                            {screenSharing && (
-                                <div className="mt-2 flex items-center gap-1.5 rounded-lg bg-indigo-500/15 px-2.5 py-1.5">
-                                    <Monitor
-                                        size={14}
-                                        className="text-indigo-400"
-                                    />
-                                    <span className="text-xs font-medium text-indigo-300">
-                                        Sharing your screen
-                                    </span>
+                        <div className="flex min-h-0 flex-col gap-4 overflow-y-auto p-3">
+                            {peerCameraInSidebar && (
+                                <div>
+                                    <p className="mb-2 truncate text-xs font-medium text-slate-400 uppercase tracking-wider">
+                                        {remotePeerName ?? 'Peer'}
+                                    </p>
+                                    <video
+                                        className="aspect-video w-full rounded-xl border border-white/10 bg-slate-950 object-cover shadow-lg"
+                                        autoPlay
+                                        muted
+                                        playsInline
+                                        ref={setRemoteVideoElement}
+                                    ></video>
+                                    {peerScreenSharing && (
+                                        <div className="mt-2 flex items-center gap-1.5 rounded-lg bg-amber-500/15 px-2.5 py-1.5">
+                                            <Monitor
+                                                size={14}
+                                                className="text-amber-400"
+                                            />
+                                            <span className="text-xs font-medium text-amber-300">
+                                                Sharing their screen
+                                            </span>
+                                        </div>
+                                    )}
                                 </div>
                             )}
-                            {peerScreenSharing && (
-                                <div className="mt-2 flex items-center gap-1.5 rounded-lg bg-amber-500/15 px-2.5 py-1.5">
-                                    <Monitor
-                                        size={14}
-                                        className="text-amber-400"
-                                    />
-                                    <span className="text-xs font-medium text-amber-300">
-                                        Peer is sharing screen
-                                    </span>
-                                </div>
-                            )}
+                            <div>
+                                <p className="mb-2 text-xs font-medium text-slate-400 uppercase tracking-wider">
+                                    You
+                                </p>
+                                <video
+                                    className="aspect-video w-full rounded-xl border border-white/10 bg-slate-950 object-cover shadow-lg"
+                                    autoPlay
+                                    muted
+                                    playsInline
+                                    ref={setLocalVideoElement}
+                                ></video>
+                                {screenSharing && (
+                                    <div className="mt-2 flex items-center gap-1.5 rounded-lg bg-indigo-500/15 px-2.5 py-1.5">
+                                        <Monitor
+                                            size={14}
+                                            className="text-indigo-400"
+                                        />
+                                        <span className="text-xs font-medium text-indigo-300">
+                                            Sharing your screen
+                                        </span>
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     </div>
+                    {/* Remote audio lives outside the video tiles so moving the
+                        peer's camera between main area and sidebar never interrupts it */}
+                    <audio autoPlay ref={setRemoteAudioElement} />
                 </div>
             )}
         </div>
