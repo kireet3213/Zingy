@@ -13,7 +13,15 @@ import {
     type UserConversationApiPayload,
 } from '../../apiSlice.ts';
 import { UserConversation } from './types/conversation.ts';
-import { Mic, MicOff, Phone, PhoneOff, Video } from 'lucide-react';
+import {
+    Mic,
+    MicOff,
+    Monitor,
+    MonitorOff,
+    Phone,
+    PhoneOff,
+    Video,
+} from 'lucide-react';
 import { socket } from '../../socket';
 import { User } from '@shared-types/socket.ts';
 import {
@@ -69,11 +77,16 @@ export function ConversationContainer() {
     const remoteVideoRef = useRef<HTMLVideoElement>(null);
 
     const localStreamRef = useRef<MediaStream | null>(null);
+    const screenStreamRef = useRef<MediaStream | null>(null);
     const remoteStream = useRef<MediaStream | null>(null);
     const [callActive, setCallActive] = useState<boolean>(false);
     const [ringing, setRinging] = useState<boolean>(false);
     const [incomingCall, setIncomingCall] = useState<User | null>(null);
     const [micEnabled, setMicEnabled] = useState<boolean>(true);
+    const [screenSharing, setScreenSharing] = useState<boolean>(false);
+    const [peerScreenSharing, setPeerScreenSharing] = useState<boolean>(false);
+    const [sidebarWidth, setSidebarWidth] = useState<number>(256);
+    const isResizing = useRef<boolean>(false);
     const localPeerConnection = useRef<RTCPeerConnection | null>(null);
 
     const { data: conversationsData } = useGetUserConversationsQuery();
@@ -134,7 +147,6 @@ export function ConversationContainer() {
 
         const stream =
             await navigator.mediaDevices.getUserMedia(mediaConstraints);
-        // Mute audio tracks by default
         stream.getAudioTracks().forEach((track) => {
             track.enabled = true;
         });
@@ -165,7 +177,6 @@ export function ConversationContainer() {
                 }
             }
 
-            // Ensure remote video element plays audio
             if (remoteVideoRef.current) {
                 remoteVideoRef.current.muted = false;
                 remoteVideoRef.current.volume = 1.0;
@@ -194,6 +205,103 @@ export function ConversationContainer() {
         setMicEnabled(newEnabled);
     }, [micEnabled]);
 
+    const stopScreenSharing = useCallback(() => {
+        if (screenStreamRef.current) {
+            screenStreamRef.current.getTracks().forEach((t) => t.stop());
+            screenStreamRef.current = null;
+        }
+
+        // Restore camera track on the peer connection
+        const cameraTrack = localStreamRef.current?.getVideoTracks()[0];
+        if (cameraTrack && localPeerConnection.current) {
+            const sender = localPeerConnection.current
+                .getSenders()
+                .find((s) => s.track?.kind === 'video');
+            if (sender) {
+                sender.replaceTrack(cameraTrack);
+            }
+        }
+
+        setScreenSharing(false);
+        if (activePeerId.current) {
+            socket.emit('screen-share-state', {
+                peerId: activePeerId.current,
+                isSharing: false,
+            });
+        }
+    }, []);
+
+    const toggleScreenShare = useCallback(async () => {
+        if (screenSharing) {
+            stopScreenSharing();
+            return;
+        }
+
+        try {
+            const screenStream = await navigator.mediaDevices.getDisplayMedia({
+                video: true,
+                audio: false,
+            });
+            screenStreamRef.current = screenStream;
+
+            const screenTrack = screenStream.getVideoTracks()[0];
+
+            // Replace the camera video track with screen track on the peer connection
+            if (localPeerConnection.current) {
+                const sender = localPeerConnection.current
+                    .getSenders()
+                    .find((s) => s.track?.kind === 'video');
+                if (sender) {
+                    await sender.replaceTrack(screenTrack);
+                }
+            }
+
+            // When user stops sharing via browser UI
+            screenTrack.onended = () => {
+                stopScreenSharing();
+            };
+
+            setScreenSharing(true);
+            if (activePeerId.current) {
+                socket.emit('screen-share-state', {
+                    peerId: activePeerId.current,
+                    isSharing: true,
+                });
+            }
+        } catch (err) {
+            // eslint-disable-next-line no-console
+            console.warn('Screen sharing cancelled or failed:', err);
+        }
+    }, [screenSharing, stopScreenSharing]);
+
+    const handleResizeStart = useCallback(
+        (e: React.MouseEvent) => {
+            e.preventDefault();
+            isResizing.current = true;
+
+            const onMouseMove = (ev: MouseEvent) => {
+                if (!isResizing.current) return;
+                const newWidth = window.innerWidth - ev.clientX;
+                const clamped = Math.min(480, Math.max(200, newWidth));
+                setSidebarWidth(clamped);
+            };
+
+            const onMouseUp = () => {
+                isResizing.current = false;
+                document.removeEventListener('mousemove', onMouseMove);
+                document.removeEventListener('mouseup', onMouseUp);
+                document.body.style.cursor = '';
+                document.body.style.userSelect = '';
+            };
+
+            document.body.style.cursor = 'col-resize';
+            document.body.style.userSelect = 'none';
+            document.addEventListener('mousemove', onMouseMove);
+            document.addEventListener('mouseup', onMouseUp);
+        },
+        []
+    );
+
     const cleanup = useCallback(async (notifyPeer = false) => {
         stopRingtone();
         if (localPeerConnection.current) {
@@ -202,6 +310,11 @@ export function ConversationContainer() {
         const peerId = activePeerId.current;
         if (notifyPeer && peerId) {
             socket.emit('video-hangup', { peerId });
+        }
+
+        if (screenStreamRef.current) {
+            screenStreamRef.current.getTracks().forEach((t) => t.stop());
+            screenStreamRef.current = null;
         }
 
         const localVideo = localVideoRef.current?.srcObject;
@@ -241,6 +354,8 @@ export function ConversationContainer() {
         setRinging(false);
         setIncomingCall(null);
         setMicEnabled(true);
+        setScreenSharing(false);
+        setPeerScreenSharing(false);
     }, []);
 
     const createPeerConnection = useCallback(
@@ -308,13 +423,11 @@ export function ConversationContainer() {
     }, [conversationsData, authUser, dispatch]);
 
     useEffect(() => {
-        // Receiver gets an incoming call ring
         function handleIncomingCall(data: { peer: User }) {
             startRingtone();
             setIncomingCall(data.peer);
         }
 
-        // Caller is notified that the peer accepted
         async function handleCallAccepted(data: { peer: User }) {
             setRinging(false);
             try {
@@ -349,13 +462,11 @@ export function ConversationContainer() {
             }
         }
 
-        // Caller is notified that the peer declined
         function handleCallDeclined() {
             setRinging(false);
             activePeerId.current = null;
         }
 
-        // Receiver gets the actual WebRTC offer after accepting
         async function handleVideoOffer(message: {
             sdp: RTCSessionDescriptionInit;
             peer: User;
@@ -459,6 +570,13 @@ export function ConversationContainer() {
             await cleanup(false);
         }
 
+        function handleScreenShareState(data: {
+            peerId: string;
+            isSharing: boolean;
+        }) {
+            setPeerScreenSharing(data.isSharing);
+        }
+
         socket.on('incoming-call', handleIncomingCall);
         socket.on('call-accepted', handleCallAccepted);
         socket.on('call-declined', handleCallDeclined);
@@ -466,6 +584,7 @@ export function ConversationContainer() {
         socket.on('new-ice-candidate', handleNewIceCandidate);
         socket.on('video-answer', handleVideoAnswer);
         socket.on('video-hangup', handleVideoHangup);
+        socket.on('screen-share-state', handleScreenShareState);
 
         return () => {
             socket.off('incoming-call', handleIncomingCall);
@@ -475,6 +594,7 @@ export function ConversationContainer() {
             socket.off('new-ice-candidate', handleNewIceCandidate);
             socket.off('video-answer', handleVideoAnswer);
             socket.off('video-hangup', handleVideoHangup);
+            socket.off('screen-share-state', handleScreenShareState);
         };
     }, [addLocalTracks, cleanup, createPeerConnection]);
 
@@ -516,6 +636,8 @@ export function ConversationContainer() {
                 </div>
             </div>
             <ConversationBox conversationUsers={conversationUsers} />
+
+            {/* Incoming call modal */}
             {incomingCall && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
                     <div className="flex flex-col items-center gap-6 rounded-3xl bg-slate-900 border border-white/10 px-12 py-10 shadow-2xl">
@@ -563,6 +685,8 @@ export function ConversationContainer() {
                     </div>
                 </div>
             )}
+
+            {/* Ringing modal */}
             {ringing && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
                     <div className="flex flex-col items-center gap-6 rounded-3xl bg-slate-900 border border-white/10 px-12 py-10 shadow-2xl">
@@ -597,23 +721,28 @@ export function ConversationContainer() {
                     </div>
                 </div>
             )}
+
+            {/* Active call - Teams-like layout */}
             {callActive && (
-                <div className="fixed inset-0 z-50 bg-black">
-                    <video
-                        className="h-full w-full object-cover bg-black"
-                        autoPlay
-                        playsInline
-                        ref={setRemoteVideoElement}
-                    ></video>
-                    <div className="pointer-events-none absolute inset-x-0 bottom-0 flex flex-col items-center gap-4 bg-linear-to-t from-black/80 via-black/35 to-transparent px-6 pb-8 pt-24">
-                        <video
-                            className="pointer-events-auto h-36 w-56 rounded-2xl border border-white/15 bg-slate-950 object-cover shadow-2xl"
-                            autoPlay
-                            muted
-                            playsInline
-                            ref={setLocalVideoElement}
-                        ></video>
-                        <div className="pointer-events-auto flex items-center gap-4">
+                <div className="fixed inset-0 z-50 flex h-screen bg-slate-950">
+                    {/* Main area - remote video */}
+                    <div className="relative flex min-w-0 flex-1 flex-col">
+                        {/* Remote video fills main area */}
+                        <div className="flex min-h-0 flex-1 items-center justify-center bg-slate-900">
+                            <video
+                                className={`h-full w-full bg-black ${
+                                    peerScreenSharing
+                                        ? 'object-contain'
+                                        : 'object-cover'
+                                }`}
+                                autoPlay
+                                playsInline
+                                ref={setRemoteVideoElement}
+                            ></video>
+                        </div>
+
+                        {/* Bottom control bar */}
+                        <div className="flex shrink-0 items-center justify-center gap-3 bg-slate-900/95 border-t border-white/5 px-6 py-4">
                             <button
                                 type="button"
                                 className={`inline-flex h-12 w-12 items-center justify-center rounded-full shadow-lg transition-colors ${
@@ -627,12 +756,41 @@ export function ConversationContainer() {
                                 {micEnabled ? (
                                     <Mic size={20} className="text-white" />
                                 ) : (
-                                    <MicOff size={20} className="text-red-400" />
+                                    <MicOff
+                                        size={20}
+                                        className="text-red-400"
+                                    />
                                 )}
                             </button>
                             <button
                                 type="button"
-                                className="inline-flex items-center gap-2 rounded-full bg-red-600 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-red-950/40"
+                                className={`inline-flex h-12 w-12 items-center justify-center rounded-full shadow-lg transition-colors ${
+                                    screenSharing
+                                        ? 'bg-indigo-600 hover:bg-indigo-500 ring-2 ring-indigo-400/50'
+                                        : 'bg-slate-700 hover:bg-slate-600'
+                                }`}
+                                onClick={toggleScreenShare}
+                                title={
+                                    screenSharing
+                                        ? 'Stop sharing'
+                                        : 'Share screen'
+                                }
+                            >
+                                {screenSharing ? (
+                                    <MonitorOff
+                                        size={20}
+                                        className="text-white"
+                                    />
+                                ) : (
+                                    <Monitor
+                                        size={20}
+                                        className="text-white"
+                                    />
+                                )}
+                            </button>
+                            <button
+                                type="button"
+                                className="inline-flex items-center gap-2 rounded-full bg-red-600 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-red-950/40 hover:bg-red-500"
                                 onClick={async () => {
                                     await cleanup(true);
                                 }}
@@ -640,6 +798,54 @@ export function ConversationContainer() {
                                 <PhoneOff size={18} />
                                 Hang up
                             </button>
+                        </div>
+                    </div>
+
+                    {/* Sidebar - local video (resizable) */}
+                    <div
+                        className="relative flex shrink-0 flex-col bg-slate-900/80"
+                        style={{ width: sidebarWidth }}
+                    >
+                        {/* Resize handle */}
+                        <div
+                            className="absolute inset-y-0 left-0 z-10 w-1.5 cursor-col-resize border-l border-white/5 transition-colors hover:bg-indigo-500/40"
+                            onMouseDown={handleResizeStart}
+                        />
+                        <div className="px-3 py-3 border-b border-white/5">
+                            <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">
+                                You
+                            </p>
+                        </div>
+                        <div className="relative p-3">
+                            <video
+                                className="aspect-video w-full rounded-xl border border-white/10 bg-slate-950 object-cover shadow-lg"
+                                autoPlay
+                                muted
+                                playsInline
+                                ref={setLocalVideoElement}
+                            ></video>
+                            {screenSharing && (
+                                <div className="mt-2 flex items-center gap-1.5 rounded-lg bg-indigo-500/15 px-2.5 py-1.5">
+                                    <Monitor
+                                        size={14}
+                                        className="text-indigo-400"
+                                    />
+                                    <span className="text-xs font-medium text-indigo-300">
+                                        Sharing your screen
+                                    </span>
+                                </div>
+                            )}
+                            {peerScreenSharing && (
+                                <div className="mt-2 flex items-center gap-1.5 rounded-lg bg-amber-500/15 px-2.5 py-1.5">
+                                    <Monitor
+                                        size={14}
+                                        className="text-amber-400"
+                                    />
+                                    <span className="text-xs font-medium text-amber-300">
+                                        Peer is sharing screen
+                                    </span>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>

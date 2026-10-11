@@ -52,6 +52,7 @@ export type ServerToClientEvents = {
     'video-answer': VideoAnswer;
     "new-ice-candidate": NewIceCandidateClient;
     'video-hangup': VideoHangup;
+    'screen-share-state': ScreenShareState;
 };
 
 export type ClientToServerEvents = {
@@ -66,6 +67,7 @@ export type ClientToServerEvents = {
     'video-answer': VideoAnswer;
     'new-ice-candidate': NewIceCandidateClient;
     'video-hangup': VideoHangup;
+    'screen-share-state': ScreenShareState;
 };
 
 export type AcknowledgementCallback = (
@@ -117,4 +119,9 @@ type CallAccepted = (data: {
 
 type CallDeclined = (data: {
     peer: User;
+}) => void;
+
+type ScreenShareState = (data: {
+    peerId: string;
+    isSharing: boolean;
 }) => void;
