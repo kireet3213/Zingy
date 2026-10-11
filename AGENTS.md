@@ -24,7 +24,9 @@ Gotcha: the server type-checks against the *built* `shared-types` (TS project re
 
 ## CI
 
-`.github/workflows/` runs only on push to `main` (that is, when a PR is merged) and on manual `workflow_dispatch`. PRs do not trigger CI, so run type-check and lint locally before pushing.
+- `node.yml` (type-check + lint) runs on PRs into `main`, on push to `main`, and on manual `workflow_dispatch`.
+- The Azure deploy workflow runs only on push to `main` (that is, when a PR is merged) and on manual dispatch. PRs never deploy.
+- Generated folders (`client/public/js-dos`, `client/src-tauri/target`) are excluded via the global `ignores` in `client/eslint.config.js`. CI's `pnpm i` runs the `postinstall` that recreates `public/js-dos`, so linting it would fail every run.
 
 ## Git conventions
 
