@@ -53,6 +53,7 @@ export type ServerToClientEvents = {
     "new-ice-candidate": NewIceCandidateClient;
     'video-hangup': VideoHangup;
     'screen-share-state': ScreenShareState;
+    'doom-invite': DoomInvite;
 };
 
 export type ClientToServerEvents = {
@@ -68,6 +69,7 @@ export type ClientToServerEvents = {
     'new-ice-candidate': NewIceCandidateClient;
     'video-hangup': VideoHangup;
     'screen-share-state': ScreenShareState;
+    'doom-invite': DoomInvite;
 };
 
 export type AcknowledgementCallback = (
@@ -124,4 +126,10 @@ type CallDeclined = (data: {
 type ScreenShareState = (data: {
     peerId: string;
     isSharing: boolean;
+}) => void;
+
+// netPeerId is the host's js-dos network id the invitee connects to
+type DoomInvite = (data: {
+    peerId: string;
+    netPeerId: string;
 }) => void;

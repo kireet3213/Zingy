@@ -23,7 +23,7 @@ import {
     PhoneOff,
     Video,
 } from 'lucide-react';
-import { DoomGame } from './DoomGame';
+import { DoomGame, type DoomSession } from './DoomGame';
 import { socket } from '../../socket';
 import { User } from '@shared-types/socket.ts';
 import {
@@ -31,42 +31,12 @@ import {
     stopRingtone,
     playHangupTone,
 } from '../../helpers/ringtone';
+import { getRtcIceServers } from '../../helpers/ice-servers';
 
 const mediaConstraints = {
     audio: true,
     video: true,
 };
-
-const turnUsername =
-    import.meta.env.VITE_TURN_USERNAME || '';
-const turnCredential =
-    import.meta.env.VITE_TURN_CREDENTIAL || '';
-
-const getRtcIceServers = (): RTCIceServer[] => [
-    {
-        urls: 'stun:stun.relay.metered.ca:80',
-    },
-    {
-        urls: 'turn:standard.relay.metered.ca:80',
-        username: turnUsername,
-        credential: turnCredential,
-    },
-    {
-        urls: 'turn:standard.relay.metered.ca:80?transport=tcp',
-        username: turnUsername,
-        credential: turnCredential,
-    },
-    {
-        urls: 'turn:standard.relay.metered.ca:443',
-        username: turnUsername,
-        credential: turnCredential,
-    },
-    {
-        urls: 'turns:standard.relay.metered.ca:443?transport=tcp',
-        username: turnUsername,
-        credential: turnCredential,
-    },
-];
 
 export function ConversationContainer() {
     const dispatch = useAppDispatch();
@@ -89,7 +59,7 @@ export function ConversationContainer() {
     const [peerScreenSharing, setPeerScreenSharing] = useState<boolean>(false);
     const [sidebarWidth, setSidebarWidth] = useState<number>(256);
     const isResizing = useRef<boolean>(false);
-    const [doomOpen, setDoomOpen] = useState<boolean>(false);
+    const [doomSession, setDoomSession] = useState<DoomSession | null>(null);
     const localPeerConnection = useRef<RTCPeerConnection | null>(null);
 
     const { data: conversationsData } = useGetUserConversationsQuery();
@@ -277,6 +247,14 @@ export function ConversationContainer() {
         }
     }, [screenSharing, stopScreenSharing]);
 
+    const sendDoomInvite = useCallback((netPeerId: string) => {
+        if (!activePeerId.current) return;
+        socket.emit('doom-invite', {
+            peerId: activePeerId.current,
+            netPeerId,
+        });
+    }, []);
+
     const handleResizeStart = useCallback(
         (e: React.MouseEvent) => {
             e.preventDefault();
@@ -359,7 +337,7 @@ export function ConversationContainer() {
         setMicEnabled(true);
         setScreenSharing(false);
         setPeerScreenSharing(false);
-        setDoomOpen(false);
+        setDoomSession(null);
     }, []);
 
     const createPeerConnection = useCallback(
@@ -581,6 +559,10 @@ export function ConversationContainer() {
             setPeerScreenSharing(data.isSharing);
         }
 
+        function handleDoomInvite(data: { peerId: string; netPeerId: string }) {
+            setDoomSession({ mode: 'join', netPeerId: data.netPeerId });
+        }
+
         socket.on('incoming-call', handleIncomingCall);
         socket.on('call-accepted', handleCallAccepted);
         socket.on('call-declined', handleCallDeclined);
@@ -589,6 +571,7 @@ export function ConversationContainer() {
         socket.on('video-answer', handleVideoAnswer);
         socket.on('video-hangup', handleVideoHangup);
         socket.on('screen-share-state', handleScreenShareState);
+        socket.on('doom-invite', handleDoomInvite);
 
         return () => {
             socket.off('incoming-call', handleIncomingCall);
@@ -599,6 +582,7 @@ export function ConversationContainer() {
             socket.off('video-answer', handleVideoAnswer);
             socket.off('video-hangup', handleVideoHangup);
             socket.off('screen-share-state', handleScreenShareState);
+            socket.off('doom-invite', handleDoomInvite);
         };
     }, [addLocalTracks, cleanup, createPeerConnection]);
 
@@ -743,8 +727,12 @@ export function ConversationContainer() {
                                 playsInline
                                 ref={setRemoteVideoElement}
                             ></video>
-                            {doomOpen && (
-                                <DoomGame onClose={() => setDoomOpen(false)} />
+                            {doomSession && (
+                                <DoomGame
+                                    session={doomSession}
+                                    onHostReady={sendDoomInvite}
+                                    onClose={() => setDoomSession(null)}
+                                />
                             )}
                         </div>
 
@@ -798,12 +786,20 @@ export function ConversationContainer() {
                             <button
                                 type="button"
                                 className={`inline-flex h-12 w-12 items-center justify-center rounded-full shadow-lg transition-colors ${
-                                    doomOpen
+                                    doomSession
                                         ? 'bg-green-600 hover:bg-green-500 ring-2 ring-green-400/50'
                                         : 'bg-slate-700 hover:bg-slate-600'
                                 }`}
-                                onClick={() => setDoomOpen((v) => !v)}
-                                title={doomOpen ? 'Close DOOM' : 'Play DOOM'}
+                                onClick={() =>
+                                    setDoomSession((s) =>
+                                        s ? null : { mode: 'host' }
+                                    )
+                                }
+                                title={
+                                    doomSession
+                                        ? 'Close DOOM'
+                                        : 'Play DOOM together'
+                                }
                             >
                                 <Gamepad2 size={20} className="text-white" />
                             </button>
