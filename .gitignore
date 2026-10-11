@@ -132,3 +132,4 @@ dist
 .secrets
 .DS_Store
 client/src-tauri/target/
+client/public/js-dos/

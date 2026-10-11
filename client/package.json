@@ -10,7 +10,8 @@
         "lint-fix": "eslint . --fix",
         "preview": "vite preview",
         "check-types": "tsc -p tsconfig.json",
-        "format": "prettier --write ."
+        "format": "prettier --write .",
+        "postinstall": "mkdir -p public/js-dos && cp -r node_modules/js-dos/dist/* public/js-dos/"
     },
     "dependencies": {
         "@radix-ui/react-dropdown-menu": "^2.1.16",
@@ -22,6 +23,7 @@
         "@tailwindcss/vite": "^4.2.1",
         "axios": "^1.13.6",
         "clsx": "^2.1.1",
+        "js-dos": "^8.5.3",
         "lucide-react": "^1.8.0",
         "react": "^19.2.4",
         "react-dom": "^19.2.4",

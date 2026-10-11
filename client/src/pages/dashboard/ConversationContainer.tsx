@@ -14,6 +14,7 @@ import {
 } from '../../apiSlice.ts';
 import { UserConversation } from './types/conversation.ts';
 import {
+    Gamepad2,
     Mic,
     MicOff,
     Monitor,
@@ -22,6 +23,7 @@ import {
     PhoneOff,
     Video,
 } from 'lucide-react';
+import { DoomGame } from './DoomGame';
 import { socket } from '../../socket';
 import { User } from '@shared-types/socket.ts';
 import {
@@ -87,6 +89,7 @@ export function ConversationContainer() {
     const [peerScreenSharing, setPeerScreenSharing] = useState<boolean>(false);
     const [sidebarWidth, setSidebarWidth] = useState<number>(256);
     const isResizing = useRef<boolean>(false);
+    const [doomOpen, setDoomOpen] = useState<boolean>(false);
     const localPeerConnection = useRef<RTCPeerConnection | null>(null);
 
     const { data: conversationsData } = useGetUserConversationsQuery();
@@ -356,6 +359,7 @@ export function ConversationContainer() {
         setMicEnabled(true);
         setScreenSharing(false);
         setPeerScreenSharing(false);
+        setDoomOpen(false);
     }, []);
 
     const createPeerConnection = useCallback(
@@ -728,7 +732,7 @@ export function ConversationContainer() {
                     {/* Main area - remote video */}
                     <div className="relative flex min-w-0 flex-1 flex-col">
                         {/* Remote video fills main area */}
-                        <div className="flex min-h-0 flex-1 items-center justify-center bg-slate-900">
+                        <div className="relative flex min-h-0 flex-1 items-center justify-center bg-slate-900">
                             <video
                                 className={`h-full w-full bg-black ${
                                     peerScreenSharing
@@ -739,6 +743,9 @@ export function ConversationContainer() {
                                 playsInline
                                 ref={setRemoteVideoElement}
                             ></video>
+                            {doomOpen && (
+                                <DoomGame onClose={() => setDoomOpen(false)} />
+                            )}
                         </div>
 
                         {/* Bottom control bar */}
@@ -787,6 +794,18 @@ export function ConversationContainer() {
                                         className="text-white"
                                     />
                                 )}
+                            </button>
+                            <button
+                                type="button"
+                                className={`inline-flex h-12 w-12 items-center justify-center rounded-full shadow-lg transition-colors ${
+                                    doomOpen
+                                        ? 'bg-green-600 hover:bg-green-500 ring-2 ring-green-400/50'
+                                        : 'bg-slate-700 hover:bg-slate-600'
+                                }`}
+                                onClick={() => setDoomOpen((v) => !v)}
+                                title={doomOpen ? 'Close DOOM' : 'Play DOOM'}
+                            >
+                                <Gamepad2 size={20} className="text-white" />
                             </button>
                             <button
                                 type="button"
