@@ -257,4 +257,12 @@ io.on('connection', async (socket) => {
             peerId: socket.handshake.auth.user.id,
         });
     });
+
+    socket.on('screen-share-state', (payload) => {
+        if (!payload?.peerId) return;
+        socket.to(payload.peerId).emit('screen-share-state', {
+            peerId: socket.handshake.auth.user.id,
+            isSharing: payload.isSharing,
+        });
+    });
 });
