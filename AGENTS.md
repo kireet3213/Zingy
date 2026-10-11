@@ -20,7 +20,9 @@ Run from the repo root unless noted:
 - `pnpm run lint`: lint every package
 - `pnpm run install-shared`: build `shared-types`
 
-Gotcha: the server type-checks against the *built* `shared-types` (TS project references). After editing `shared-types/socket.ts`, run `npx tsc --build` in `shared-types/` (or `pnpm run install-shared`). Otherwise the server reports the new events as missing.
+Gotcha: the server type-checks against the *built* `shared-types` (TS project references). The server's `prebuild` script builds `shared-types` first, so `pnpm build` and `pnpm start` in `server/` handle it. For a bare `tsc` / `check-types` after editing `shared-types/socket.ts`, run `pnpm run install-shared` first, or the server reports the new events as missing.
+
+Deploys: the Azure workflow deploys **only the client**. The server (pm2, `server/ecosystem.config.js`) is deployed by hand: `git pull && pnpm i && pnpm --filter zingy-server build`. pm2 watches `server/dist` and restarts automatically. Any change to `server/` or `shared-types/` needs this; otherwise new socket events are silently dropped (Socket.IO ignores events without a handler).
 
 ## CI
 
@@ -40,8 +42,13 @@ All call logic lives in `client/src/pages/dashboard/ConversationContainer.tsx`. 
 
 - Flow: `video-call-ring` → `call-accepted` → `video-call` (offer) → `video-answer` → `new-ice-candidate` → `video-hangup`.
 - STUN/TURN come from `client/src/helpers/ice-servers.ts`: metered.ca STUN + TURN (`VITE_TURN_USERNAME`, `VITE_TURN_CREDENTIAL`), plus two Google STUN servers as backup. Keep the list short, because each extra URL slows candidate gathering (Firefox warns at 5+).
-- Layout follows Microsoft Teams: remote video fills the main area, local video sits in a resizable right sidebar (200–480px), and controls sit in a bottom bar. The `min-h-0` / `shrink-0` classes on the main column keep the control bar on screen. Don't remove them.
-- Screen sharing uses `RTCRtpSender.replaceTrack()` to swap camera ↔ screen with no renegotiation. The camera track stays alive in `localStreamRef`, so the local preview keeps working. `screen-share-state` tells the peer, which switches remote video to `object-contain`.
+- Layout follows Microsoft Teams: the main area shows the peer's camera, the peer's shared screen (`object-contain`), or DOOM. Whenever the main area holds a screen or the game (`peerCameraInSidebar`), the peer's camera moves to a tile in the resizable right sidebar (200–480px) above "You". Controls sit in a bottom bar. The `min-h-0` / `shrink-0` classes on the main column keep the control bar on screen. Don't remove them.
+- Remote audio plays through a dedicated `<audio>` element. All remote `<video>` elements are `muted`, so the peer's camera tile can move between main area and sidebar without cutting or doubling audio.
+- Screen sharing sends the screen **alongside** the camera on a second video transceiver, so the peer always sees your face:
+  - The caller does `addTransceiver('video', {direction: 'sendrecv'})` after `addLocalTracks`, before `createOffer`. The answerer, after `setRemoteDescription` + `addLocalTracks`, sets the second video transceiver to `sendrecv`. Both keep it in `screenTransceiverRef`.
+  - Start/stop sharing = `screenTransceiverRef.current.sender.replaceTrack(screenTrack | null)`. No renegotiation, and the camera sender is never touched.
+  - Incoming tracks: `isScreenTransceiver()` treats the **second video transceiver** as the screen (both peers create transceivers in m-line order: camera, then screen). Keep that order if you add tracks.
+  - `screen-share-state` tells the peer when to show the screen.
 
 To add a new call event: add the type to both event maps in `shared-types/socket.ts`, add a relay in `server/app.ts` that copies the `screen-share-state` handler (emit to `payload.peerId`, replacing `peerId` with the sender's id), then register the handler with `socket.on` / `socket.off` in `ConversationContainer.tsx`.
 

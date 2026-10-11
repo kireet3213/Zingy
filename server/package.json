@@ -4,6 +4,7 @@
     "description": "",
     "main": "index.js",
     "scripts": {
+        "prebuild": "pnpm --filter shared-types build",
         "build": "tsc",
         "dev": "nodemon app.ts",
         "start": "pnpm build && cp .env ./dist && node ./dist/app.js",
